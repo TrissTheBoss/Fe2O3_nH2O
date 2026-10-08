@@ -83,28 +83,40 @@ the timing comparison itself was not requested, so no benchmark measurements
 were collected. The machine-specific performance and threshold gates remain
 pending.
 
-## Owner-reported Windows hardware smoke run — 2026-10-08
+## Owner-reported hardware backend comparison — 2026-10-08
 
-The project owner reports flawless gameplay and very high FPS using
-`fe2o3-nh2o-0.1.0-alpha.1` in a Windows x86_64 Prism Launcher instance with
-Minecraft 26.2, Fabric Loader 0.19.5, Java 25.0.1, and an AMD Radeon RX 6800 XT.
-The attached launcher log records Minecraft's graphics backend as OpenGL and
-the Rust/WebGPU mipmap adapter as that Radeon GPU using Vulkan and AMD driver
-26.8.1. It records initialization of the mipmap stage, generation of a
-`16x512`, two-level mip chain, and entry into a new single-player world.
-The log contains no numeric FPS samples, disabled-mod comparison, extended
-stress duration, resource-pack test, screenshot, or Graphics API change/recovery
-test. The reported high FPS is therefore qualitative owner feedback, not a
-controlled measurement or demonstrated speedup attributable to this
-load-time mipmap stage. This run is evidence that the released JAR starts and
-executes its native WebGPU mipmap path on this Windows GPU while Minecraft uses
-OpenGL.
+The project owner supplied two Windows x86_64 Prism Launcher 10.0.5 logs for
+the same Minecraft 26.2 instance and `fe2o3-nh2o-0.1.0-alpha.1` JAR. Both use
+Fabric Loader 0.19.5, Java 25, an AMD Radeon RX 6800 XT, AMD driver 26.8.1,
+854x480 window size, FPS Display 5.1.0+26.2, and a superflat test world. The
+owner states the world and settings were the same, with render distance 15
+and simulation distance 10.
+
+| Minecraft graphics backend | Owner-reported FPS Display readings | Fe2O3 wgpu backend | Startup/world evidence |
+| --- | --- | --- | --- |
+| OpenGL | At least 3,300 FPS (reported minimum) | Vulkan on RX 6800 XT | Minecraft initialized; GPU mip stage generated a 16x512, two-level chain; entered test world |
+| Vulkan | 2,100–2,200 FPS (reported min/max); later message says it did not exceed 2,300 | Vulkan on RX 6800 XT | Minecraft initialized; GPU mip stage generated a 16x512, two-level chain; entered test world |
+
+The logs record the owner typing these readings and conditions into the in-game
+chat. They support that the released JAR starts under both Minecraft backends,
+and that its independent WebGPU mipmap path runs on Vulkan in either case. They
+also capture successful backend selection across separate launches. They do
+not show in-place backend switching; that is not expected from this test.
+The owner's qualitative report is that gameplay was flawless with very high
+FPS. These observations do not provide raw time-series samples, frame-time
+percentiles, a disabled-mod baseline, a screenshot or a long stress test. Since
+Minecraft's world drawing remains vanilla, the readings characterize the full
+test setup and do not isolate an FPS contribution from mipmap generation.
+
+The two logs document real hardware and user-reported readings, not a controlled
+performance benchmark or full visual/resource-pack parity test. No claim is made
+that the mod itself causes the observed steady-state FPS.
 
 ## Outstanding gates
 
-- Windows/macOS GPU execution, physical GPUs beyond the owner run above, and Minecraft Vulkan presentation: pending.
+- Additional physical GPUs and Minecraft Vulkan presentation on other hardware: pending.
 - Full resource-pack and visual parity matrix: pending.
-- Controlled end-to-end performance and memory benchmarks: pending; no measured speedup claim.
+- Controlled same-backend enabled/disabled performance and memory benchmarks: pending.
 
 ## Upstream interface evidence
 
