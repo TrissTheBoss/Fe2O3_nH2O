@@ -25,7 +25,8 @@
 
 Record the final commit, Actions run, report counts, native backend/device and
 remaining failures in VERIFICATION.md. Passing tests must not be inferred from
-a successful compile. Do not mark a manually described scenario as executed.
+a successful compile. Record manually reported results with their evidence and
+limitations; don't present a subjective observation as a measurement.
 
 ## Manual visual parity matrix — not yet executed
 
@@ -48,17 +49,26 @@ images with an exact diff where deterministic; mask only explained temporal
 effects and retain both originals and diff. Never overwrite a baseline simply
 because a test changed. Keep captures outside git in linked test artifacts.
 
-## Performance protocol — not yet executed
+## Performance protocol — controlled benchmark pending
 
-Measure a disabled baseline against enabled runs of the **same JAR**. Capture
-adapter/device, driver, CPU, memory, OS, Minecraft backend, packs and dimensions.
-Separate cold startup, shader compilation, warm resource reload and steady-state
-frame times. Alternate the two modes, collect at least 10 samples after warmup,
-and report median/p95/p99 plus ranges. Measure total reload latency and peak
-resident/native/GPU memory; dispatch time alone excludes JNI and readback costs.
+The project owner has reported flawless gameplay and very high FPS in one
+Windows AMD Radeon RX 6800 XT test. The attached launcher log confirms a
+successful Minecraft 26.2/Fabric 0.19.5 startup, Minecraft OpenGL renderer,
+WebGPU adapter on the same GPU via Vulkan, a generated 16x512 two-level mip
+chain, and entry into a single-player world. It does not include numeric FPS
+samples, a vanilla-only comparison, or a stated scene duration. Treat the FPS
+description as a qualitative user report, not a controlled result or evidence
+that the mipmap stage caused the frame rate.
 
-No FPS or resource-reload speedup is currently claimed. Do not call a software
-Vulkan result a hardware speedup. A loading-stage optimization should not be
-presented as a world-renderer benchmark. Set the default threshold only after
-end-to-end measurements show a benefit without visual regressions.
+For a controlled performance comparison, measure a disabled baseline against
+enabled runs of the **same JAR**. Capture adapter/device, driver, CPU, memory,
+OS, Minecraft backend, packs and dimensions. Separate cold startup, shader
+compilation, warm resource reload and steady-state frame times. Alternate the
+two modes, collect at least 10 samples after warmup, and report median/p95/p99
+plus ranges. Measure total reload latency and peak resident/native/GPU memory;
+dispatch time alone excludes JNI and readback costs.
 
+Do not call a software Vulkan result a hardware speedup. A loading-stage
+optimization should not be presented as a world-renderer benchmark. Set the
+default threshold only after end-to-end measurements show a benefit without
+visual regressions.
