@@ -11,6 +11,10 @@
   fallback, zero/excessive levels, JNI invalid shapes and recovery after rejection.
 - Platform identifier mapping. Mandatory adapter execution in Linux CI; native
   compilation alone on other platforms is not GPU validation.
+- A separate Fabric client test uses the packaged mod and real Mixin, checks a
+  known output pixel and execution counter, creates a block/entity/particle/sky
+  scene, and asserts another GPU chain is generated during resource reload.
+  Screenshots are captured as smoke evidence, not asserted full parity baselines.
 
 Record the final commit, Actions run, report counts, native backend/device and
 remaining failures in VERIFICATION.md. Passing tests must not be inferred from

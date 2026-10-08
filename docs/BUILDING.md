@@ -8,9 +8,9 @@ baseline. Install graphics drivers supporting one of wgpu's native backends.
 Do not run Windows native builds from a Unix cross-linker without a tested target.
 
 ```sh
-cargo test --manifest-path native/Cargo.toml
-cargo clippy --manifest-path native/Cargo.toml --all-targets -- -D warnings
-cargo build --manifest-path native/Cargo.toml --release
+cargo test --locked --manifest-path native/Cargo.toml
+cargo clippy --locked --manifest-path native/Cargo.toml --all-targets -- -D warnings
+cargo build --locked --manifest-path native/Cargo.toml --release
 python tools/stage_native.py
 gradle build
 ```
@@ -42,7 +42,27 @@ Always inspect artifact contents and reports before distribution.
 
 Build jobs have read-only repository permissions and timeouts. Native outputs
 are intermediate artifacts retained for 14 days; verified JARs for 30 days.
-An ephemeral interface inspection workflow documents the initial upstream
-investigation. It must not be used to publish game binaries or decompiled sources.
+The historical interface inspection runs document the initial upstream investigation;
+their temporary workflow was removed. Never publish game binaries or decompiled sources.
 No Actions job commits to the repository or uses personal access tokens.
+
+The production client test runs with `gradle runProductionClientGameTest` using
+Fabric API 0.161.0+26.2 as a test harness, Xvfb on Linux and the built JAR. The
+test mod is a separate source set and is not bundled in the production JAR.
+The upstream-documented network-synchronizer workaround is enabled for CI.
+It creates a disposable singleplayer fixture and captures the scene and reload.
+
+CI uses community `cargo-about` 0.9.2 to generate dependency license texts at
+`natives/licenses/third-party.html` in the JAR. To include them in a local release:
+
+```sh
+cargo install --locked --features cli cargo-about --version 0.9.2
+mkdir -p build/native/licenses
+cargo about generate --locked --fail --manifest-path native/Cargo.toml native/about.hbs > build/native/licenses/third-party.html
+gradle build
+```
+
+`python tools/verify_jar.py` checks a combined four-platform JAR; it intentionally
+fails for a local single-platform artifact. Production archives are validated
+before publishing and receive a SHA-256 sidecar. See VERIFICATION.md for executed results.
 

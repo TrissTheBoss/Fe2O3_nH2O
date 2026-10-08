@@ -55,7 +55,7 @@ The default threshold is provisional; benchmark it before treating it as optimal
 Use JDK 25, Gradle 9.5.1, Rust 1.90.0 and Python 3:
 
 ```sh
-cargo build --manifest-path native/Cargo.toml --release
+cargo build --locked --manifest-path native/Cargo.toml --release
 python tools/stage_native.py
 gradle build
 ```
@@ -72,6 +72,7 @@ constraints and failure diagnosis.
 - [Architecture and ABI](docs/ARCHITECTURE.md): ownership, integration and fallback.
 - [Decisions](docs/DECISIONS.md): rationale, alternatives and consequences.
 - [Testing and parity](docs/TESTING.md): automated coverage and unexecuted visual matrix.
+- [Verification record](docs/VERIFICATION.md): exact commits, runs and remaining gaps.
 - [Repository hygiene](docs/REPOSITORY_HYGIENE.md): branch, artifact and dependency rules.
 - [Contributing](CONTRIBUTING.md): workflow and documentation requirements.
 - [Third-party notices](NOTICE.md): upstream projects and dependency policy.

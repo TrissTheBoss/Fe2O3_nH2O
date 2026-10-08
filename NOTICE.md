@@ -3,8 +3,10 @@
 This project uses wgpu (MIT/Apache-2.0), jni-rs (MIT/Apache-2.0), pollster
 (MIT/Apache-2.0), bytemuck (MIT/Apache-2.0/Zlib), Fabric Loader/Mixin, Fabric Loom,
 Gradle and JUnit. Transitive dependencies retain their own licenses. Cargo.lock
-is the native dependency inventory. Release packaging must preserve applicable
-third-party license texts, not just this summary.
+is the native dependency inventory. CI uses cargo-about 0.9.2 to bundle native
+dependency license texts under `natives/licenses/third-party.html`; generation
+fails on unresolved licensing. Fabric API is used by the client-test harness,
+not bundled or required by production classes.
 
 Primary references:
 
