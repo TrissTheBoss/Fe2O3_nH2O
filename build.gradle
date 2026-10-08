@@ -59,6 +59,7 @@ test {
     useJUnitPlatform()
     systemProperty 'fe2o3.minPixels', '4'
     systemProperty 'fe2o3.requireGpu', System.getenv('FE2O3_REQUIRE_GPU') ?: 'false'
+    systemProperty 'fe2o3.benchmarkMipmaps', System.getProperty('fe2o3.benchmarkMipmaps') ?: 'false'
     testLogging { events 'passed', 'skipped', 'failed'; showStandardStreams = true }
 }
 
