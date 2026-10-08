@@ -12,15 +12,16 @@ The mod replaces eligible **MEAN texture mipmap generation** with a Rust/WGSL
 compute pipeline. All mip levels run on the GPU in one submission, followed by
 one readback. It uses the running game's integer color tables, preserving its
 color arithmetic. This is texture preparation during loading/reloading, not a
-replacement for world draw calls. There is no controlled evidence that it raises
-steady-state FPS.
+replacement for world draw calls.
 
-The project owner reports flawless play and very high FPS in a Windows test on
-an AMD Radeon RX 6800 XT. The attached log confirms Minecraft launched through
-OpenGL, the WebGPU mipmap stage initialized on the same GPU through Vulkan, and
-a mip chain was generated. No numeric FPS capture or disabled-mod comparison
-was included, so this is a positive hardware smoke report, not a measured
-speedup attributable to Fe2O3.
+The project owner reports very high FPS in the same superflat test world on an
+AMD Radeon RX 6800 XT: at least 3,300 FPS with Minecraft's OpenGL backend and
+about 2,100–2,300 FPS with its Vulkan backend, using FPS Display. The two
+attached logs confirm Minecraft initialized on each backend and that Fe2O3's
+WebGPU mipmap stage generated a chain on Vulkan in both runs. The owner says
+the world and settings were the same. These are brief user-reported readings at
+854x480, not a controlled benchmark or evidence that the mipmap stage caused
+the frame rates; Minecraft still handles world drawing.
 
 Terrain, full and partial blocks, entities, particles, skies, weather, fluids,
 lighting, animations and GUI drawing still use Minecraft's renderer. Their full
