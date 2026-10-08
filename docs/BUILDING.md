@@ -48,7 +48,8 @@ No Actions job commits to the repository or uses personal access tokens.
 
 The production client test runs with `gradle runProductionClientGameTest` using
 Fabric API 0.161.0+26.2 as a test harness, Xvfb on Linux and the built JAR. The
-test mod is a separate source set and is not bundled in the production JAR.
+test mod is a separate source set, packaged as a dedicated JAR for the production
+client run, and is not bundled in the production JAR.
 The upstream-documented network-synchronizer workaround is enabled for CI.
 It creates a disposable singleplayer fixture and captures the scene and reload.
 

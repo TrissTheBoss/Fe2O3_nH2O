@@ -15,6 +15,8 @@
   known output pixel and execution counter, creates a block/entity/particle/sky
   scene, and asserts another GPU chain is generated during resource reload.
   Screenshots are captured as smoke evidence, not asserted full parity baselines.
+  CI requires the completion marker and both non-empty scene screenshots, so a
+  successful client launch without the test mod cannot pass this gate.
 
 Record the final commit, Actions run, report counts, native backend/device and
 remaining failures in VERIFICATION.md. Passing tests must not be inferred from

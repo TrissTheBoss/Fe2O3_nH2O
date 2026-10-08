@@ -24,13 +24,34 @@ A later client-launch attempt (Actions run 37797119698) started Minecraft and
 initialized the Mixin/native library, but the separate client-test mod was not
 on the production run classpath. It produced no scene screenshots. This is a
 false positive from the launch task exiting successfully; it is not counted as
-a passing client test. The workflow now explicitly supplies the remapped
-`gametest` JAR and requires a completion marker plus both screenshots.
+a passing client test. The workflow now builds and supplies a dedicated
+`gametest` JAR and requires a completion marker plus scene screenshots.
+
+## Completed client and distribution verification — 2026-10-08
+
+Commit: `5263a98e78f0609928a6f42c8a2ab507ff6cbcdc`
+
+[GitHub Actions run 37803100663](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/37803100663)
+completed successfully. Four native targets passed Rust tests, Clippy with
+warnings denied, and release compilation. All five JVM tests passed with
+mandatory GPU execution; the adapter was llvmpipe/Mesa 25.2.8 on Vulkan.
+
+The production JAR passed metadata, isolation, four-native SHA-256, and bundled
+license-notice checks. Its SHA-256 is
+`ea8e7da9b86a9f9cd21b9d928df1b19ad39945dfa1c3200edd0a92671c358832`.
+Download the verified production archive from the
+[Actions artifact](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/37803100663/artifacts/11561763142).
+
+The production Minecraft client loaded the separate test mod and live Mixin.
+The test checked a known mip pixel and GPU execution count, created a disposable
+scene with full and partial blocks, glass, leaves, a pig, flame particles and a
+noon sky, then reloaded resources and confirmed another GPU mip chain. The
+completion marker and both non-empty screenshots were required by CI:
+`0000_terrain-partial-blocks-entity-particles-sky.png` and
+`0001_after-resource-reload.png`. These are smoke captures, not parity baselines.
 
 ## Outstanding gates
 
-- Live Mixin-enabled Minecraft client, scene and resource reload: pending after fixing test-mod classpath wiring; CI must prove execution.
-- Four-native JAR payload/checksum verification and generated notices: pending.
 - Windows/macOS GPU execution, physical GPUs and Minecraft Vulkan presentation: pending.
 - Full resource-pack and visual parity matrix: pending.
 - End-to-end performance and memory benchmarks: pending; no speedup claim.
