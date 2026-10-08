@@ -105,3 +105,5 @@ jobs:
           path: build/distributions/*
           if-no-files-found: error
           retention-days: 30
+
+# Client test gate: test mod, completion marker, and both scene captures are mandatory.
