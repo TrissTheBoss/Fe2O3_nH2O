@@ -50,7 +50,6 @@ completion marker and both non-empty screenshots were required by CI:
 `0000_terrain-partial-blocks-entity-particles-sky.png` and
 `0001_after-resource-reload.png`. These are smoke captures, not parity baselines.
 
-
 ## Expanded fallback and strategy verification — 2026-10-08
 
 Commit: `e9abfea03abd719ce055bf2a1f48251bb0a2651b`
@@ -84,11 +83,28 @@ the timing comparison itself was not requested, so no benchmark measurements
 were collected. The machine-specific performance and threshold gates remain
 pending.
 
+## Owner-reported Windows hardware smoke run — 2026-10-08
+
+The project owner reports flawless gameplay and very high FPS using
+`fe2o3-nh2o-0.1.0-alpha.1` in a Windows x86_64 Prism Launcher instance with
+Minecraft 26.2, Fabric Loader 0.19.5, Java 25.0.1, and an AMD Radeon RX 6800 XT.
+The attached launcher log records Minecraft's graphics backend as OpenGL and
+the Rust/WebGPU mipmap adapter as that Radeon GPU using Vulkan and AMD driver
+26.8.1. It records initialization of the mipmap stage, generation of a
+`16x512`, two-level mip chain, and entry into a new single-player world.
+The log contains no numeric FPS samples, disabled-mod comparison, extended
+stress duration, resource-pack test, screenshot, or Graphics API change/recovery
+test. The reported high FPS is therefore qualitative owner feedback, not a
+controlled measurement or demonstrated speedup attributable to this
+load-time mipmap stage. This run is evidence that the released JAR starts and
+executes its native WebGPU mipmap path on this Windows GPU while Minecraft uses
+OpenGL.
+
 ## Outstanding gates
 
-- Windows/macOS GPU execution, physical GPUs and Minecraft Vulkan presentation: pending.
+- Windows/macOS GPU execution, physical GPUs beyond the owner run above, and Minecraft Vulkan presentation: pending.
 - Full resource-pack and visual parity matrix: pending.
-- End-to-end performance and memory benchmarks: pending; no speedup claim.
+- Controlled end-to-end performance and memory benchmarks: pending; no measured speedup claim.
 
 ## Upstream interface evidence
 
