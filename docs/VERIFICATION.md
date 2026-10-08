@@ -126,3 +126,29 @@ strategies, NativeImage methods, integer ARGB tables and Fabric version metadata
 and [color inspection](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/37793203743).
 The temporary inspection workflow is removed from the final branch; its history
 and the architectural conclusions remain. No game binaries or sources are tracked.
+
+## Blaze3D-aware wgpu backend preference — 2026-10-08
+
+PR #9 code head `3b965f84366d625ea63f203e7bb7ed9bb25826d8` passed the complete
+workflow in [GitHub Actions run 37832107479](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/37832107479).
+All four native targets passed formatting, Rust tests, Clippy with warnings
+denied, and release compilation: Ubuntu x86_64, Windows x86_64, macOS arm64,
+and macOS Intel. Seven JVM tests passed, including backend-name mapping,
+mandatory software-Vulkan execution, and exact mip comparisons against
+Minecraft's MEAN implementation. Packaged JAR/native checksum validation passed.
+
+The production client initialized Minecraft on OpenGL and logged the detected
+Blaze3D backend as OpenGL with Fe2O3 preference `gl`. The CI environment could
+not load wgpu's GL drivers, so the native stage logged its fallback and created
+a Vulkan device on llvmpipe/Mesa 25.2.8. It generated the first Minecraft mip
+chain, and the required live scene and resource-reload smoke checks passed.
+The run's [production JAR artifact](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/37832107479/artifacts/11573263702)
+expires 2026-11-07.
+
+This verifies the startup hook, preference transfer, unavailable-preferred-
+backend fallback and existing live client path on software rendering. It does
+not verify wgpu GL computation, Minecraft's Vulkan presentation in this run,
+physical-GPU behavior, in-place backend switching, a world-rendering pass,
+visual parity or performance improvement. Hardware tests on the owner's RX
+6800 XT remain necessary to determine whether wgpu GL is preferable there or
+the fallback is selected.

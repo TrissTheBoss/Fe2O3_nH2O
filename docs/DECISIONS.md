@@ -95,3 +95,27 @@ Sources:
 Consequences: M2 starts with device lifecycle and backend compatibility
 validation, then proceeds to one actual world pass with a vanilla rollback.
 No M2 rendering code or visual parity is claimed by this decision.
+
+## ADR-007 — Follow the initialized Blaze3D backend as a wgpu preference (2026-10-08, accepted)
+
+The owner asked Fe2O3 to adapt when Minecraft's Graphics API changes. Minecraft
+26.2 initializes its Graphics API through Blaze3D, and its device information
+exposes the selected backend. Detect the initialized device after
+`RenderSystem.initRenderer`; pass a normalized OpenGL/Vulkan preference into the
+existing independent wgpu compute stage. Do not edit Minecraft options or select
+its backend. If matching wgpu initialization fails, retry wgpu's ordinary
+automatic adapter selection and preserve the existing vanilla fallback on total
+failure. A setting change takes effect after Minecraft restarts and initializes
+the newly selected device.
+
+This is backend preference alignment, not graphics-device interoperability:
+Fe2O3 still owns an independent wgpu device, transfers mip pixels back to Java,
+and performs no world draw. Binding to Blaze3D resources and replacing an actual
+world pass remain separate milestones. Test both Minecraft presentation backends
+on physical hardware before making compatibility or performance claims.
+
+Evidence: the owner supplied successful 26.2 OpenGL and Vulkan launches with
+the released mod, while their logs show the independent wgpu stage used Vulkan
+for both. Official 26.2 migration notes document `DeviceInfo#backendName`;
+Fabric's 26.2 rendering guide requires the Blaze3D abstraction. The implementation
+must still pass 26.2 compilation and live-client CI before merge.

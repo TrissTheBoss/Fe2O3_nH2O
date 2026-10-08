@@ -2,7 +2,7 @@
   "required": true,
   "package": "dev.fe2o3.mixin",
   "compatibilityLevel": "JAVA_25",
-  "client": ["MipmapGeneratorMixin"],
+  "client": ["MipmapGeneratorMixin", "RenderSystemMixin"],
   "injectors": {"defaultRequire": 1}
 }
 

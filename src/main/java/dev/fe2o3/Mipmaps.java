@@ -30,10 +30,11 @@ public final class Mipmaps {
         if (ready) return true;
         try {
             NativeLoader.load();
-            NativeBridge.initialize(colorTables());
+            NativeBridge.initialize(colorTables(), Blaze3DBackend.wgpuPreference());
             Runtime.getRuntime().addShutdownHook(new Thread(NativeBridge::shutdown, "Fe2O3 shutdown"));
             ready = true;
-            LOGGER.info("Rust/WebGPU mipmap stage initialized; minimum {} source pixels", MIN_PIXELS);
+            LOGGER.info("Rust/WebGPU mipmap stage initialized; minimum {} source pixels; backend preference {}",
+                    MIN_PIXELS, Blaze3DBackend.wgpuPreference());
             return true;
         } catch (Exception | LinkageError error) {
             disable(error);

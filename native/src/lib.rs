@@ -1,5 +1,5 @@
 //! Native WebGPU mipmap stage. No Minecraft pointers cross this boundary.
-use jni::objects::{JClass, JIntArray};
+use jni::objects::{JClass, JIntArray, JString};
 use jni::sys::{jint, jintArray};
 use jni::JNIEnv;
 use std::panic::{catch_unwind, AssertUnwindSafe};
@@ -33,35 +33,71 @@ fn chain_sizes(width: u32, height: u32, levels: u32) -> Result<Vec<(u32, u32)>, 
 }
 
 struct Renderer {
+    _instance: wgpu::Instance,
     device: wgpu::Device,
     queue: wgpu::Queue,
     pipeline: wgpu::ComputePipeline,
     tables: wgpu::Buffer,
 }
 
+fn backend_for_preference(name: &str) -> Option<wgpu::Backends> {
+    match name.trim().to_ascii_lowercase().as_str() {
+        "gl" | "opengl" => Some(wgpu::Backends::GL),
+        "vulkan" => Some(wgpu::Backends::VULKAN),
+        _ => None,
+    }
+}
+
+fn create_device(
+    backends: Option<wgpu::Backends>,
+) -> Result<(wgpu::Instance, wgpu::AdapterInfo, wgpu::Device, wgpu::Queue), String> {
+    let instance = match backends {
+        Some(backends) => wgpu::Instance::new(&wgpu::InstanceDescriptor {
+            backends,
+            ..Default::default()
+        }),
+        None => wgpu::Instance::default(),
+    };
+    let adapter = pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions {
+        power_preference: wgpu::PowerPreference::LowPower,
+        ..Default::default()
+    }))
+    .map_err(|error| error.to_string())?;
+    let info = adapter.get_info();
+    let (device, queue) = pollster::block_on(adapter.request_device(&wgpu::DeviceDescriptor {
+        label: Some("Fe2O3 mipmaps"),
+        required_features: wgpu::Features::empty(),
+        required_limits: wgpu::Limits::downlevel_defaults(),
+        memory_hints: wgpu::MemoryHints::MemoryUsage,
+        trace: wgpu::Trace::Off,
+    }))
+    .map_err(|error| error.to_string())?;
+    Ok((instance, info, device, queue))
+}
+
 impl Renderer {
-    fn new(tables: &[i32]) -> Result<Self, String> {
+    fn new(tables: &[i32], backend_preference: &str) -> Result<Self, String> {
         if tables.len() != 1280
             || tables[..256].iter().any(|&v| !(0..=1023).contains(&v))
             || tables[256..].iter().any(|&v| !(0..=255).contains(&v))
         {
             return Err("invalid color tables".into());
         }
-        let instance = wgpu::Instance::default();
-        let adapter = pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions {
-            power_preference: wgpu::PowerPreference::LowPower,
-            ..Default::default()
-        }))
-        .map_err(|e| e.to_string())?;
-        let (device, queue) = pollster::block_on(adapter.request_device(&wgpu::DeviceDescriptor {
-            label: Some("Fe2O3 mipmaps"),
-            required_features: wgpu::Features::empty(),
-            required_limits: wgpu::Limits::downlevel_defaults(),
-            memory_hints: wgpu::MemoryHints::MemoryUsage,
-            trace: wgpu::Trace::Off,
-        }))
-        .map_err(|e| e.to_string())?;
-        eprintln!("[Fe2O3] WebGPU adapter: {:?}", adapter.get_info());
+        let preferred_backends = backend_for_preference(backend_preference);
+        let (instance, adapter_info, device, queue) = match preferred_backends {
+            Some(backends) => match create_device(Some(backends)) {
+                Ok(created) => created,
+                Err(preferred_error) => {
+                    eprintln!(
+                        "[Fe2O3] WebGPU {:?} preference unavailable ({}); retrying automatic adapter selection",
+                        backends, preferred_error
+                    );
+                    create_device(None)?
+                }
+            },
+            None => create_device(None)?,
+        };
+        eprintln!("[Fe2O3] WebGPU adapter: {:?}", adapter_info);
         let module = device.create_shader_module(wgpu::include_wgsl!("mipmap.wgsl"));
         let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
             label: Some("Fe2O3 exact MEAN mipmaps"),
@@ -77,6 +113,7 @@ impl Renderer {
             usage: wgpu::BufferUsages::STORAGE,
         });
         Ok(Self {
+            _instance: instance,
             device,
             queue,
             pipeline,
@@ -220,15 +257,21 @@ pub extern "system" fn Java_dev_fe2o3_NativeBridge_initialize(
     mut env: JNIEnv,
     _: JClass,
     tables: JIntArray,
+    backend_preference: JString,
 ) {
     guarded(&mut env, |env| {
         let data = read_ints(env, &tables, 1280)?;
+        let backend_preference = env
+            .get_string(&backend_preference)
+            .map_err(|error| error.to_string())?
+            .to_string_lossy()
+            .into_owned();
         let mut guard = RENDERER
             .get_or_init(|| Mutex::new(None))
             .lock()
             .map_err(|e| e.to_string())?;
         if guard.is_none() {
-            *guard = Some(Renderer::new(&data)?);
+            *guard = Some(Renderer::new(&data, &backend_preference)?);
         }
         Ok(())
     });
@@ -275,6 +318,17 @@ pub extern "system" fn Java_dev_fe2o3_NativeBridge_shutdown(mut env: JNIEnv, _: 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn backend_preferences_map_only_supported_blaze3d_names() {
+        assert_eq!(backend_for_preference("OpenGL"), Some(wgpu::Backends::GL));
+        assert_eq!(
+            backend_for_preference("Vulkan"),
+            Some(wgpu::Backends::VULKAN)
+        );
+        assert_eq!(backend_for_preference("auto"), None);
+        assert_eq!(backend_for_preference("unknown"), None);
+    }
+
     #[test]
     fn rejects_invalid_shapes_before_allocating() {
         for (w, h, l) in [

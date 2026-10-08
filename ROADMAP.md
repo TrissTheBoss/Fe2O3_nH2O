@@ -24,7 +24,7 @@ linked test run; **planned** means it does not exist. No percentage estimates.
 - Add cutout/coverage handling only if it can remain exactly compatible and faster.
 - Add verified additional native targets, dependency audit and release provenance.
 
-## M2 — Blaze3D backend integration and first world pass (planned)
+## M2 — Blaze3D backend integration and first world pass (in progress)
 
 ### Renderer backend lifecycle
 
@@ -33,10 +33,15 @@ setting selects a backend preference (OpenGL or experimental Vulkan); it does no
 enable or disable Blaze3D. Fe2O3 must therefore attach to the active Blaze3D
 device, not write `options.txt` or force a backend.
 
-- At client startup, query the initialized Blaze3D backend/device and create
-  renderer resources against that device.
-- Observe device/backend recreation after Graphics API changes or recovery, then
-  discard stale GPU resources and rebuild against the new active device.
+- **Implemented:** after `RenderSystem.initRenderer`, read the selected
+  `DeviceInfo.backendName()` and provide an OpenGL/Vulkan preference to the
+  separate wgpu compute stage. On a Minecraft restart after the Graphics API
+  setting changes, the new initialized device is detected automatically.
+- **Implemented:** if the preferred wgpu API cannot initialize, retry normal
+  wgpu adapter selection before the existing vanilla fallback.
+- **Remaining:** bind renderer resources and command submission to the actual
+  Blaze3D device; observe any supported device recreation and rebuild resources.
+  The current compute stage still owns an independent wgpu device.
 - Preserve vanilla startup fallback; backend initialization failures leave
   vanilla rendering usable and disable Fe2O3's replacement for that session.
 - Keep resource creation and draw submission in Minecraft's required render
