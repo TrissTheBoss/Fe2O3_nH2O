@@ -39,9 +39,13 @@ device, not write `options.txt` or force a backend.
   setting changes, the new initialized device is detected automatically.
 - **Implemented:** if the preferred wgpu API cannot initialize, retry normal
   wgpu adapter selection before the existing vanilla fallback.
-- **Remaining:** bind renderer resources and command submission to the actual
-  Blaze3D device; observe any supported device recreation and rebuild resources.
-  The current compute stage still owns an independent wgpu device.
+- **Implemented; CI verification pending:** lifecycle callbacks now run before
+  RenderSystem.initRenderer replaces a device, after the replacement is
+  installed, and when GameRenderer.close begins. Device generations allow
+  resources to reject stale handles.
+- **Remaining:** register a real renderer resource and verify creation/release on
+  hardware and device recreation. The current compute stage still owns an
+  independent wgpu device; this lifecycle API does not share it with Blaze3D.
 - Preserve vanilla startup fallback; backend initialization failures leave
   vanilla rendering usable and disable Fe2O3's replacement for that session.
 - Keep resource creation and draw submission in Minecraft's required render
