@@ -15,7 +15,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public final class Blaze3DDeviceLifecycle {
     private static final Logger LOGGER = LoggerFactory.getLogger("Fe2O3_nH2O");
     private static final DeviceEpoch<GpuDevice> DEVICE = new DeviceEpoch<>();
-    private static final List<Resource> RESOURCES = new CopyOnWriteArrayList<>();
+    private static final CopyOnWriteArrayList<Resource> RESOURCES = new CopyOnWriteArrayList<>();
 
     private Blaze3DDeviceLifecycle() { }
 
@@ -32,7 +32,7 @@ public final class Blaze3DDeviceLifecycle {
     /** Register a resource and initialize it immediately when a device is already active. */
     public static void register(Resource resource) {
         Objects.requireNonNull(resource, "resource");
-        if (!RESOURCES.add(resource)) return;
+        if (!RESOURCES.addIfAbsent(resource)) return;
         GpuDevice active = DEVICE.active();
         if (active != null) notifyReady(resource, active, DEVICE.generation());
     }
