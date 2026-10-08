@@ -1,0 +1,86 @@
+package dev.fe2o3;
+
+import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.blaze3d.platform.Transparency;
+import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
+import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
+import net.minecraft.client.renderer.texture.MipmapGenerator;
+import net.minecraft.client.renderer.texture.MipmapStrategy;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.block.Blocks;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+/** Real client/Mixin smoke coverage. Screenshots are evidence, not parity baselines. */
+public final class ClientSmokeTest implements FabricClientGameTest {
+    @Override
+    public void runTest(ClientGameTestContext context) {
+        context.runOnClient(client -> {
+            long before = Mipmaps.completed();
+            try (NativeImage base = new NativeImage(16, 16, true)) {
+                for (int y = 0; y < 16; y++) for (int x = 0; x < 16; x++) base.setPixel(x, y, 0xffffffff);
+                NativeImage[] levels = MipmapGenerator.generateMipLevels(
+                        Identifier.fromNamespaceAndPath("fe2o3", "integration"), new NativeImage[]{base},
+                        4, MipmapStrategy.MEAN, 0.0f, new Transparency(false, false));
+                try {
+                    if (Mipmaps.completed() != before + 1) throw new AssertionError("Live Mixin did not execute WebGPU");
+                    if (levels[4].getPixel(0, 0) != 0xffffffff) throw new AssertionError("Live mip pixel mismatch");
+                } finally {
+                    for (int i = 1; i < levels.length; i++) levels[i].close();
+                }
+            }
+        });
+        long beforeVanillaFallback = Mipmaps.completed();
+        try (NativeImage base = new NativeImage(16, 16, false)) {
+            for (int y = 0; y < 16; y++) for (int x = 0; x < 16; x++) {
+                base.setPixel(x, y, ((x + y) & 1) == 0 ? 0xffffffff : 0x00ffffff);
+            }
+            NativeImage[] levels = MipmapGenerator.generateMipLevels(
+                    Identifier.fromNamespaceAndPath("fe2o3", "cutout-fallback"),
+                    new NativeImage[]{base}, 4, MipmapStrategy.CUTOUT, 0.0f,
+                    new Transparency(true, true));
+            try {
+                if (Mipmaps.completed() != beforeVanillaFallback) {
+                    throw new AssertionError("CUTOUT strategy must stay on vanilla");
+                }
+                if (levels.length != 5) throw new AssertionError("Vanilla CUTOUT chain has the wrong length");
+            } finally {
+                for (int i = 1; i < levels.length; i++) levels[i].close();
+            }
+        }
+        try (var world = context.worldBuilder().create()) {
+            var server = world.getServer();
+            server.runCommand("fill -8 99 -8 8 99 8 minecraft:stone");
+            server.runCommand("setblock -2 100 0 minecraft:stone");
+            server.runCommand("setblock -1 100 0 minecraft:oak_stairs");
+            server.runCommand("setblock 0 100 0 minecraft:oak_slab");
+            server.runCommand("setblock 1 100 0 minecraft:glass");
+            server.runCommand("setblock 2 100 0 minecraft:oak_leaves");
+            server.runCommand("summon minecraft:pig 3 100 0 {NoAI:1b}");
+            server.runCommand("tp @p 0 100 6 180 10");
+            server.runCommand("time set noon");
+            context.waitFor(client -> client.level != null
+                    && client.level.getBlockState(new BlockPos(-1, 100, 0)).is(Blocks.OAK_STAIRS), 1200);
+            world.getConnection().waitForChunksRender();
+            server.runCommand("particle minecraft:flame 0 101 0 0.5 0.5 0.5 0 80 force");
+            context.waitTicks(2);
+            context.takeScreenshot("terrain-partial-blocks-entity-particles-sky");
+            long beforeReload = Mipmaps.completed();
+            var reload = context.computeOnClient(client -> client.reloadResourcePacks());
+            context.waitFor(client -> reload.isDone(), 1200);
+            reload.join();
+            if (Mipmaps.completed() <= beforeReload) throw new AssertionError("Reload did not regenerate GPU mipmaps");
+            world.getConnection().waitForChunksRender();
+            context.takeScreenshot("after-resource-reload");
+        }
+        try {
+            Files.writeString(Path.of("FE2O3_CLIENT_TEST_PASSED"), "mixin, scene and resource reload passed\n");
+        } catch (java.io.IOException e) {
+            throw new AssertionError("Unable to write client test completion marker", e);
+        }
+        System.out.println("[Fe2O3] CLIENT_TEST_COMPLETE");
+    }
+}
+

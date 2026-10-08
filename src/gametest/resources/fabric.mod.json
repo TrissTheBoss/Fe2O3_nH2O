@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "fe2o3-client-tests",
+  "version": "1.0.0",
+  "name": "Fe2O3 client integration tests",
+  "environment": "client",
+  "entrypoints": {"fabric-client-gametest": ["dev.fe2o3.ClientSmokeTest"]}
+}
+

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "fe2o3_nh2o",
+  "version": "${version}",
+  "name": "Fe2O3_nH2O",
+  "description": "Experimental Rust/WebGPU texture mipmap rendering stage. World drawing remains vanilla.",
+  "authors": ["TrissTheBoss"],
+  "contact": {"sources": "https://github.com/TrissTheBoss/Fe2O3_nH2O"},
+  "license": "MIT",
+  "environment": "client",
+  "mixins": ["fe2o3.mixins.json"],
+  "depends": {"fabricloader": ">=0.19.5", "minecraft": "26.2", "java": ">=25"}
+}
+
