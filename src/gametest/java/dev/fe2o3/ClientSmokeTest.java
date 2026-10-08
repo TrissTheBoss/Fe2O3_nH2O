@@ -32,6 +32,24 @@ public final class ClientSmokeTest implements FabricClientGameTest {
                 }
             }
         });
+        long beforeVanillaFallback = Mipmaps.completed();
+        try (NativeImage base = new NativeImage(16, 16, false)) {
+            for (int y = 0; y < 16; y++) for (int x = 0; x < 16; x++) {
+                base.setPixel(x, y, ((x + y) & 1) == 0 ? 0xffffffff : 0x00ffffff);
+            }
+            NativeImage[] levels = MipmapGenerator.generateMipLevels(
+                    Identifier.fromNamespaceAndPath("fe2o3", "cutout-fallback"),
+                    new NativeImage[]{base}, 4, MipmapStrategy.CUTOUT, 0.0f,
+                    new Transparency(true, true));
+            try {
+                if (Mipmaps.completed() != beforeVanillaFallback) {
+                    throw new AssertionError("CUTOUT strategy must stay on vanilla");
+                }
+                if (levels.length != 5) throw new AssertionError("Vanilla CUTOUT chain has the wrong length");
+            } finally {
+                for (int i = 1; i < levels.length; i++) levels[i].close();
+            }
+        }
         try (var world = context.worldBuilder().create()) {
             var server = world.getServer();
             server.runCommand("fill -8 99 -8 8 99 8 minecraft:stone");

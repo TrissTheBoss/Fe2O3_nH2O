@@ -3,7 +3,7 @@
 Status vocabulary: **implemented** means code exists; **verified** requires a
 linked test run; **planned** means it does not exist. No percentage estimates.
 
-## M0 — first native rendering stage (implemented; validation in progress)
+## M0 — first native rendering stage (implemented; CI verified)
 
 - Rust/wgpu compute pipeline generating standard mip chains in one submission.
 - Fabric 26.2 integration through a narrow MipmapGenerator mixin.
@@ -11,7 +11,7 @@ linked test run; **planned** means it does not exist. No percentage estimates.
 - Bundled natives for four desktop targets, SHA-256 extraction validation.
 - Differential tests using the actual Minecraft MEAN implementation.
 - Documentation, contributor workflow and repository hygiene rules.
-- Outstanding: live-client launch evidence and measured performance.
+- Outstanding: physical-GPU measurements and end-to-end performance evidence.
 
 ## M1 — qualify texture preparation (planned)
 

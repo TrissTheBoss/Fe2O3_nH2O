@@ -77,6 +77,39 @@ class MipmapsTest {
         assertTrue(Mipmaps.completed() >= 24);
     }
 
+
+    @Test void opaqueAutoStrategyMatchesVanillaOnGpu() {
+        requireGpu();
+        try (NativeImage base = new NativeImage(16, 16, false)) {
+            Random random = new Random(0xA070);
+            for (int y = 0; y < 16; y++) for (int x = 0; x < 16; x++) {
+                base.setPixel(x, y, random.nextInt() | 0xff000000);
+            }
+            int[] before = base.getPixels();
+            long completed = Mipmaps.completed();
+            NativeImage[] gpu = Mipmaps.tryGenerate(new NativeImage[]{base}, 4,
+                    MipmapStrategy.AUTO, new Transparency(false, false));
+            assertNotNull(gpu, "Opaque AUTO textures should use the eligible MEAN GPU path");
+            assertEquals(completed + 1, Mipmaps.completed());
+            NativeImage[] vanilla = MipmapGenerator.generateMipLevels(
+                    Identifier.fromNamespaceAndPath("fe2o3", "auto"), new NativeImage[]{base},
+                    4, MipmapStrategy.AUTO, 0.0f, new Transparency(false, false));
+            try {
+                assertEquals(vanilla.length, gpu.length);
+                assertArrayEquals(before, base.getPixels(), "The source image must remain unchanged");
+                for (int level = 1; level < gpu.length; level++) {
+                    assertArrayEquals(vanilla[level].getPixels(), gpu[level].getPixels(),
+                            "AUTO output mismatch at level " + level);
+                }
+            } finally {
+                for (int level = 1; level < gpu.length; level++) {
+                    gpu[level].close();
+                    vanilla[level].close();
+                }
+            }
+        }
+    }
+
     @Test void specializedPackStrategiesAndSuppliedMipsFallBackWithoutMutation() {
         try (NativeImage base = new NativeImage(16, 16, true); NativeImage supplied = new NativeImage(8, 8, true)) {
             base.setPixel(0, 0, 0x017f2345);
