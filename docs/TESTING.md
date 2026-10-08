@@ -15,6 +15,11 @@
   and reports median/p95 without asserting a performance win.
 - Platform identifier mapping. Mandatory adapter execution in Linux CI; native
   compilation alone on other platforms is not GPU validation.
+- Blaze3D device epoch state tests cover identity-based idempotence, replacement,
+  detach and failed-initialization state. The live client must also observe a
+  nonzero generation from the RenderSystem.initRenderer hook. No real renderer
+  resource is registered yet, so resource allocation/release behavior and device
+  recreation remain unverified.
 - A separate Fabric client test uses the packaged mod and real Mixin, checks a
   known output pixel and execution counter, confirms CUTOUT stays on vanilla,
   creates a block/entity/particle/sky scene, and asserts another GPU chain is
