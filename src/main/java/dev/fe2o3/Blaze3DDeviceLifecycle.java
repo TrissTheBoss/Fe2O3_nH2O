@@ -82,6 +82,7 @@ public final class Blaze3DDeviceLifecycle {
         try {
             resource.onDeviceReady(device, generation);
         } catch (RuntimeException | LinkageError error) {
+            notifyLost(resource, device);
             RESOURCES.remove(resource);
             LOGGER.warn("Removing a Fe2O3 Blaze3D resource after initialization failed", error);
         }
