@@ -321,7 +321,10 @@ mod tests {
     #[test]
     fn backend_preferences_map_only_supported_blaze3d_names() {
         assert_eq!(backend_for_preference("OpenGL"), Some(wgpu::Backends::GL));
-        assert_eq!(backend_for_preference("Vulkan"), Some(wgpu::Backends::VULKAN));
+        assert_eq!(
+            backend_for_preference("Vulkan"),
+            Some(wgpu::Backends::VULKAN)
+        );
         assert_eq!(backend_for_preference("auto"), None);
         assert_eq!(backend_for_preference("unknown"), None);
     }
