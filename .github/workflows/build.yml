@@ -2,6 +2,7 @@ name: Build and verify
 on:
   push:
     branches: [main, 'feat/**', 'fix/**']
+    tags: ['v*']
     paths: ['native/**', 'src/**', 'tools/**', '*.gradle', 'gradle.properties', 'rust-toolchain.toml', '.github/workflows/**']
   pull_request:
     paths: ['native/**', 'src/**', 'tools/**', '*.gradle', 'gradle.properties', 'rust-toolchain.toml', '.github/workflows/**']
@@ -106,3 +107,63 @@ jobs:
           path: build/distributions/*
           if-no-files-found: error
           retention-days: 30
+
+  publish-prerelease:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: fe2o3-nh2o-26.2
+          path: release-assets
+      - name: Validate alpha tag, source and archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(sed -n 's/^version=//p' gradle.properties)
+          tag=${GITHUB_REF_NAME}
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+-(alpha|beta|rc)\.[0-9]+$ ]]; then
+            echo "Automated publishing is limited to alpha, beta and release-candidate versions: $version" >&2
+            exit 1
+          fi
+          if [[ "$tag" != "v$version" ]]; then
+            echo "Tag $tag must match version $version in gradle.properties" >&2
+            exit 1
+          fi
+          git fetch origin main:refs/remotes/origin/main --no-tags
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+          jar="fe2o3-nh2o-$version.jar"
+          test -s "release-assets/$jar"
+          test -s "release-assets/$jar.sha256"
+          (cd release-assets && sha256sum --check "$jar.sha256")
+      - name: Publish GitHub prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(sed -n 's/^version=//p' gradle.properties)
+          tag=${GITHUB_REF_NAME}
+          jar="release-assets/fe2o3-nh2o-$version.jar"
+          checksum="$jar.sha256"
+          cat > release-notes.md <<EOF
+          Experimental prerelease for Minecraft Java 26.2 on Fabric.
+
+          This build accelerates only eligible MEAN texture mipmap generation. It does not replace world drawing and does not claim complete vanilla or resource-pack parity or an FPS improvement. See README.md and docs/RELEASES.md before installing.
+
+          CI verified the tagged source with the repository's four-target native build, mandatory software-Vulkan differential tests, packaged JAR checks and live client smoke test. The software Vulkan result is not a physical-GPU performance benchmark.
+
+          Source commit: $GITHUB_SHA
+          Workflow run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+          EOF
+          gh release create "$tag" "$jar" "$checksum" \
+            --verify-tag --prerelease --title "$tag" \
+            --notes-file release-notes.md

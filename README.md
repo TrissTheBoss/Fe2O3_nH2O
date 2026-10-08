@@ -24,8 +24,10 @@ replace the resource-pack loader, model baker or animation metadata handling.
 ## Install and use
 
 1. Install Minecraft **26.2**, Java 25 and Fabric Loader **0.19.5 or later**.
-2. Download the `fe2o3-nh2o-26.2` artifact from a successful
-   [Build and verify run](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/workflows/build.yml).
+2. Download the JAR and `.sha256` file from the
+   [GitHub Releases page](https://github.com/TrissTheBoss/Fe2O3_nH2O/releases).
+   Releases are experimental prereleases. Check the release notes and verify
+   the JAR checksum before installing.
 3. Put `fe2o3-nh2o-0.1.0-alpha.1.jar` in your instance's `mods` directory.
    Do not install the `-sources.jar`.
 
@@ -74,6 +76,7 @@ constraints and failure diagnosis.
 - [Testing and parity](docs/TESTING.md): automated coverage and unexecuted visual matrix.
 - [Verification record](docs/VERIFICATION.md): exact commits, runs and remaining gaps.
 - [Repository hygiene](docs/REPOSITORY_HYGIENE.md): branch, artifact and dependency rules.
+- [Release policy](docs/RELEASES.md): version tags, alpha publication and release protections.
 - [Contributing](CONTRIBUTING.md): workflow and documentation requirements.
 - [Third-party notices](NOTICE.md): upstream projects and dependency policy.
 

@@ -16,6 +16,12 @@ automatic merge. Keep main usable; describe the implemented scope and gaps in
 each PR. Before review: run relevant tests, inspect the complete diff, verify
 resource contents, confirm no generated output or secrets, and update status docs.
 
+Protect `main` with an active GitHub ruleset: require pull requests, block
+force-pushes and deletion, and require the `native (ubuntu-24.04)`,
+`native (windows-2022)`, `native (macos-15)`, `native (macos-15-intel)` and
+`verify` checks before merging. Do not require the `publish-prerelease` job on
+branch PRs; it only runs for release tags.
+
 ## Dependencies and CI
 
 Use published community dependencies with reviewed licenses. Pin toolchain and
@@ -39,4 +45,9 @@ Build from an identified commit; retain reports, checksums and dependency notice
 with the artifact. Release notes must distinguish experimental texture work from
 world renderer work. Do not ship game assets or claim vendor endorsement. Do not
 publish a stable release until the documented parity and performance gates pass.
+Tag names must match `gradle.properties`; never move or reuse published tags.
+Automated alpha/beta/rc releases must pass the full build workflow and attach the
+verified JAR with its SHA-256 sidecar. Keep the tag protected from updates and
+deletions with an active `v*` ruleset. See [RELEASES](RELEASES.md) for the
+maintainer procedure and stable-release gate.
 
