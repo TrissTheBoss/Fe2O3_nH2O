@@ -83,34 +83,35 @@ the timing comparison itself was not requested, so no benchmark measurements
 were collected. The machine-specific performance and threshold gates remain
 pending.
 
-## Owner-reported hardware backend comparison — 2026-10-08
+## Owner-reported hardware backend observations — 2026-10-08
 
-The project owner supplied two Windows x86_64 Prism Launcher 10.0.5 logs for
-the same Minecraft 26.2 instance and `fe2o3-nh2o-0.1.0-alpha.1` JAR. Both use
-Fabric Loader 0.19.5, Java 25, an AMD Radeon RX 6800 XT, AMD driver 26.8.1,
-854x480 window size, FPS Display 5.1.0+26.2, and a superflat test world. The
-owner states the world and settings were the same, with render distance 15
-and simulation distance 10.
+The owner supplied separate Windows x86_64 Prism Launcher 10.0.5 logs for
+Minecraft 26.2 with `fe2o3-nh2o-0.1.0-alpha.1`. The runs use Fabric Loader
+0.19.5, Java 25.0.1, an AMD Radeon RX 6800 XT and driver 26.8.1, 854x480,
+FPS Display 5.1.0+26.2, and a superflat test world. Earlier messages describe
+render distance 15 and simulation distance 10 for the test. Treat FPS values as
+the owner's in-game chat reports, not measurements extracted from an automated
+benchmark.
 
-| Minecraft graphics backend | Owner-reported FPS Display readings | Fe2O3 wgpu backend | Startup/world evidence |
+| Minecraft graphics backend | Earlier owner-reported FPS | Latest owner-reported FPS | Fe2O3 wgpu adapter in latest log |
 | --- | --- | --- | --- |
-| OpenGL | At least 3,300 FPS (reported minimum) | Vulkan on RX 6800 XT | Minecraft initialized; GPU mip stage generated a 16x512, two-level chain; entered test world |
-| Vulkan | 2,100–2,200 FPS (reported min/max); later message says it did not exceed 2,300 | Vulkan on RX 6800 XT | Minecraft initialized; GPU mip stage generated a 16x512, two-level chain; entered test world |
+| OpenGL | At least 3,300 FPS (reported minimum) | About 3,500–3,900 FPS | AMD Radeon RX 6800 XT, GL backend |
+| Vulkan | 2,100–2,200 FPS (reported min/max); another message says no more than 2,300 | Same as before, about 2,100–2,300 FPS | AMD Radeon RX 6800 XT, Vulkan backend |
 
-The logs record the owner typing these readings and conditions into the in-game
-chat. They support that the released JAR starts under both Minecraft backends,
-and that its independent WebGPU mipmap path runs on Vulkan in either case. They
-also capture successful backend selection across separate launches. They do
-not show in-place backend switching; that is not expected from this test.
-The owner's qualitative report is that gameplay was flawless with very high
-FPS. These observations do not provide raw time-series samples, frame-time
-percentiles, a disabled-mod baseline, a screenshot or a long stress test. Since
-Minecraft's world drawing remains vanilla, the readings characterize the full
-test setup and do not isolate an FPS contribution from mipmap generation.
+Both latest logs show the corresponding Minecraft backend preference
+(OpenGL -> `gl`, Vulkan -> `vulkan`), successful wgpu adapter initialization
+on the RX 6800 XT, and generation of a 16x512, two-level mip chain. This is
+physical-hardware evidence that the preference alignment works on this GPU for
+both APIs across separate launches. The launches do not test changing APIs
+in-place; Minecraft applies its graphics choice on restart.
 
-The two logs document real hardware and user-reported readings, not a controlled
-performance benchmark or full visual/resource-pack parity test. No claim is made
-that the mod itself causes the observed steady-state FPS.
+The latest OpenGL reading is approximate chat text (“3500 to 3900~”), while the
+Vulkan figures are the owner's approximate range and earlier min/max chat
+entries. They are not raw samples or frame-time percentiles. There is no
+enabled/disabled comparison, controlled benchmark, screenshot, or long stress
+test here. Since world drawing remains vanilla, the reported frame rates do not
+isolate any effect of mipmap generation and do not establish an FPS improvement.
+These logs also do not establish full resource-pack or visual parity.
 
 ## Outstanding gates
 
