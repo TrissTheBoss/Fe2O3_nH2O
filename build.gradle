@@ -24,9 +24,14 @@ dependencies {
     productionRuntimeMods 'net.fabricmc.fabric-api:fabric-api:0.161.0+26.2'
 }
 
+tasks.register('clientGameTestJar', Jar) {
+    archiveClassifier = 'gametest'
+    from sourceSets.gametest.output
+}
+
 tasks.register('runProductionClientGameTest', net.fabricmc.loom.task.prod.ClientProductionRunTask) {
-    // Production runs only load explicitly supplied intermediary/remapped mod JARs.
-    mods.from(tasks.named('remapGametestJar'))
+    // Production runs only load explicitly supplied mod JARs.
+    mods.from(tasks.named('clientGameTestJar'))
     runDir = layout.buildDirectory.dir('run/clientGameTest')
     jvmArgs.addAll('-Dfabric.client.gametest', '-Dfe2o3.minPixels=4',
         '-Dfabric.client.gametest.disableNetworkSynchronizer=true')
