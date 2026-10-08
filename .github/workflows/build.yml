@@ -1,4 +1,5 @@
 name: Build and verify
+# Native builds feed the mandatory Minecraft differential tests.
 on:
   push:
     branches: [main, 'feat/**', 'fix/**']
