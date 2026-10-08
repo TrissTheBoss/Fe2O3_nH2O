@@ -15,13 +15,15 @@ color arithmetic. This is texture preparation during loading/reloading, not a
 replacement for world draw calls.
 
 The project owner reports very high FPS in the same superflat test world on an
-AMD Radeon RX 6800 XT: at least 3,300 FPS with Minecraft's OpenGL backend and
-about 2,100–2,300 FPS with its Vulkan backend, using FPS Display. The two
-attached logs confirm Minecraft initialized on each backend and that Fe2O3's
-WebGPU mipmap stage generated a chain on Vulkan in both runs. The owner says
-the world and settings were the same. These are brief user-reported readings at
-854x480, not a controlled benchmark or evidence that the mipmap stage caused
-the frame rates; Minecraft still handles world drawing.
+AMD Radeon RX 6800 XT using FPS Display. Earlier logs recorded at least 3,300
+FPS with Minecraft OpenGL and 2,100–2,300 FPS with Minecraft Vulkan. In the
+latest pair of launches, the owner reports about 3,500–3,900 FPS with OpenGL
+and about 2,100–2,300 FPS with Vulkan. The latest logs show Fe2O3 selecting
+wgpu GL for Minecraft OpenGL and wgpu Vulkan for Minecraft Vulkan; both GPU
+mipmap stages generated a 16x512, two-level chain. The launches used 854x480.
+These are brief, user-reported readings, not a controlled benchmark or evidence
+that mipmap generation caused the frame rates; Minecraft still handles world
+drawing. See [the verification record](docs/VERIFICATION.md) for test limits.
 
 Terrain, full and partial blocks, entities, particles, skies, weather, fluids,
 lighting, animations and GUI drawing still use Minecraft's renderer. Their full
