@@ -26,15 +26,40 @@ linked test run; **planned** means it does not exist. No percentage estimates.
 
 ## M2 — Blaze3D backend integration and first world pass (planned)
 
-- Assess the current wgpu-mc/Electrum rewrite as the community backend reference;
-  verify its stable 26.2 compatibility, API maturity, distribution terms and build.
-- Define who owns the frame graph, color/depth targets, synchronization and
+### Renderer backend lifecycle
+
+Minecraft 26.2 already routes rendering through Blaze3D. The vanilla Graphics API
+setting selects a backend preference (OpenGL or experimental Vulkan); it does not
+enable or disable Blaze3D. Fe2O3 must therefore attach to the active Blaze3D
+device, not write `options.txt` or force a backend.
+
+- At client startup, query the initialized Blaze3D backend/device and create
+  renderer resources against that device.
+- Observe device/backend recreation after Graphics API changes or recovery, then
+  discard stale GPU resources and rebuild against the new active device.
+- Preserve vanilla startup fallback; backend initialization failures leave
+  vanilla rendering usable and disable Fe2O3's replacement for that session.
+- Keep resource creation and draw submission in Minecraft's required render
+  phases and thread. Do not assume OpenGL-specific state or raw Vulkan handles.
+- Test clean first launch, OpenGL, Vulkan when available, changed preference,
+  failed Vulkan startup recovery, window resize, resource reload and shutdown.
+- Verify pixels and frame synchronization before replacing one actual pass.
+  Roll back to that vanilla pass on unsupported capabilities or failure.
+
+### Community backend reference
+
+Assess the current wgpu-mc/Electrum rewrite as a community solution. Its stated
+goal is first full Blaze3D backend compatibility, followed by terrain replacement.
+Pin and adopt it only after stable 26.2 compatibility, API maturity, distribution
+terms, Java/native ABI, build process and the no-extra-user-mod requirement pass
+review. It is a reference, not currently a safe runtime dependency.
+
+- Define ownership of frame graph, color/depth targets, synchronization and
   resource reload lifecycle before connecting a second GPU backend.
-- Implement the backend boundary through Blaze3D, preserving OpenGL and Vulkan
-  compatibility; avoid a separate raw-window surface unless interoperability is
-  proven for the Minecraft-owned frame.
-- Replace one actual vanilla world pass with a tested rollback path; do not count
-  a diagnostic triangle or extra overlay as a replacement.
+- Avoid a separate raw-window surface unless interoperability with Minecraft's
+  frame is proven.
+- Replace one actual vanilla world pass with a tested rollback path; a diagnostic
+  triangle or extra overlay does not count as pass replacement.
 
 ## M3 — world renderer and vanilla parity (planned)
 
@@ -51,4 +76,3 @@ linked test run; **planned** means it does not exist. No percentage estimates.
 - Demonstrate improvements in frame-time percentiles, memory and loading costs.
 - Keep native core independent; create a separately tested adapter for each game
   version. Do not widen the Minecraft version range to imply untested support.
-

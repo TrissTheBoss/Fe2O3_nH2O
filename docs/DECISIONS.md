@@ -67,26 +67,31 @@ Minecraft's frame graph, depth buffer, or synchronization.
 
 The community `wgpu-mc` / Electrum project is the closest existing solution.
 Its current README says it is rewriting for Minecraft's newer renderer and puts
-full Blaze3D backend compatibility ahead of returning to terrain replacement.
-The current main branch also targets Minecraft 26.2-rc1, carries its own tool
-and dependency set, and presents different license declarations across project
-files. It is a reference to assess, not a stable drop-in dependency for this
-26.2 project.
+full Blaze3D backend compatibility ahead of terrain replacement. The current
+Fabric metadata targets Minecraft 26.2-rc.1 and requires Fabric API, so it is
+not a drop-in runtime dependency for this Fabric Loader-only mod.
 
-Decision: use Blaze3D's backend boundary as the integration target and assess
-wgpu-mc/Electrum before implementing a separate backend. Do not create an
-independent native surface or add a demonstration overlay as a substitute for a
-vanilla pass. Before adopting upstream code, pin an exact revision and verify
-stable 26.2 compatibility, Java/native ABI, distribution terms, build process,
-and the no-extra-user-mod requirement. Keep the existing M0 texture stage
-separate until a tested backend lifecycle can own real frame output.
+Decision: the vanilla Graphics API preference is not a Blaze3D toggle. Do not
+rewrite `options.txt` or force OpenGL/Vulkan on first startup or after a setting
+change. Let Minecraft initialize and recover its selected backend, then bind
+any future renderer resources to the active Blaze3D device on startup and
+recreate them when that device changes. On failed integration, leave Minecraft's
+vanilla path intact. Assess wgpu-mc/Electrum before implementing an independent
+backend; do not create a separate native surface or a demonstration overlay as
+a substitute for a vanilla pass. Before adopting upstream code, pin an exact
+revision and verify stable 26.2 compatibility, API maturity, Java/native ABI,
+distribution terms, build process, and the no-extra-user-mod requirement. Keep
+the existing M0 texture stage separate until a tested backend lifecycle can
+own real frame output.
 
 Sources:
+- [Minecraft 26.2 release notes: Graphics API and startup fallback](https://feedback.minecraft.net/hc/en-us/articles/46690753273997-Minecraft-Java-Edition-26-2)
 - [Fabric 26.2 rendering concepts](https://docs.fabricmc.net/develop/rendering/basic-concepts)
 - [Fabric world rendering and extraction/drawing phases](https://docs.fabricmc.net/develop/rendering/world)
 - [wgpu-mc / Electrum upstream status](https://github.com/wgpu-mc/wgpu-mc)
+- [wgpu-mc / Electrum Fabric metadata](https://github.com/wgpu-mc/wgpu-mc/blob/main/fabric/src/main/resources/fabric.mod.json)
 - [wgpu raw surface lifetime requirements](https://docs.rs/wgpu/26.0.1/wgpu/enum.SurfaceTargetUnsafe.html)
 
-Consequences: M2 starts with backend compatibility and ownership validation,
-then proceeds to one actual world pass with a vanilla rollback. No M2 rendering
-code or visual parity is claimed by this decision.
+Consequences: M2 starts with device lifecycle and backend compatibility
+validation, then proceeds to one actual world pass with a vanilla rollback.
+No M2 rendering code or visual parity is claimed by this decision.
