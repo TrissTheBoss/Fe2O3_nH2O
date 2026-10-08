@@ -50,6 +50,30 @@ completion marker and both non-empty screenshots were required by CI:
 `0000_terrain-partial-blocks-entity-particles-sky.png` and
 `0001_after-resource-reload.png`. These are smoke captures, not parity baselines.
 
+
+## Expanded fallback and strategy verification — 2026-10-08
+
+Commit: `e9abfea03abd719ce055bf2a1f48251bb0a2651b`
+
+[GitHub Actions run 37805765573](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/37805765573)
+completed successfully. All four native targets passed Rust tests, Clippy with
+warnings denied and release compilation. Linux CI ran the six JVM tests with
+GPU execution mandatory on llvmpipe/Mesa 25.2.8 using Vulkan, including the new
+opaque AUTO differential test against Minecraft's actual MipmapGenerator.
+Packaged native payload and JAR metadata checks passed.
+
+The live Fabric client/Mixin test also passed. In addition to the existing
+MEAN GPU output, world scene and reload checks, it verified that CUTOUT uses
+vanilla and does not increment the GPU completion counter. The separate
+`verification-reports` artifact contains the completion marker and required
+non-empty screenshots. The production JAR is available from the
+[run 13 distribution artifact](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/37805765573/artifacts/11562373419).
+
+The run's native software adapter is evidence for WebGPU execution and exact
+mipmap output, not physical GPU performance. Full resource-pack visual parity,
+Windows/macOS GPU execution, alternate Minecraft presentation backends, and
+end-to-end performance/memory benchmarks remain unverified.
+
 ## Outstanding gates
 
 - Windows/macOS GPU execution, physical GPUs and Minecraft Vulkan presentation: pending.
