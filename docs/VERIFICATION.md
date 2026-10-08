@@ -74,6 +74,16 @@ mipmap output, not physical GPU performance. Full resource-pack visual parity,
 Windows/macOS GPU execution, alternate Minecraft presentation backends, and
 end-to-end performance/memory benchmarks remain unverified.
 
+## Mipmap benchmark harness — 2026-10-08
+
+PR head `9c7c6b3f404229bb0d6c4acebfa08ff4ad8179f5` passed all four native
+matrix jobs and the `verify` job in
+[Actions run 37824336848](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/37824336848).
+The opt-in benchmark class compiled and the default CI test suite completed;
+the timing comparison itself was not requested, so no benchmark measurements
+were collected. The machine-specific performance and threshold gates remain
+pending.
+
 ## Outstanding gates
 
 - Windows/macOS GPU execution, physical GPUs and Minecraft Vulkan presentation: pending.

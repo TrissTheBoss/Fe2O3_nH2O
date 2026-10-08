@@ -15,6 +15,21 @@ python tools/stage_native.py
 gradle build
 ```
 
+Run the informational vanilla-versus-WebGPU timing comparison on a machine
+with the bundled native library and a working GPU adapter:
+
+```sh
+FE2O3_REQUIRE_GPU=true gradle test -Dfe2o3.benchmarkMipmaps=true
+```
+
+It compares complete mipmap calls for opaque 128², 512² and 1024² images, checks
+pixel equality, warms each path, then reports median and p95 across 20 alternating
+samples. The WebGPU measurement includes JNI copies, dispatch, GPU readback and
+Minecraft image allocation; device initialization is warmed before timing. Results
+are diagnostic for that machine and driver, not a CI gate or an FPS claim. Record
+hardware, driver and backend alongside results. The benchmark is skipped by
+default.
+
 Run `FE2O3_REQUIRE_GPU=true gradle test` on Linux/macOS to prohibit skipped GPU
 tests. PowerShell: set `$env:FE2O3_REQUIRE_GPU='true'` first. For Linux headless
 testing install Mesa Vulkan drivers and provide a valid XDG_RUNTIME_DIR. No
