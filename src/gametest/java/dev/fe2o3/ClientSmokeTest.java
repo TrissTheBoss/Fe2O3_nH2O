@@ -10,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Blocks;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -18,6 +19,27 @@ public final class ClientSmokeTest implements FabricClientGameTest {
     @Override
     public void runTest(ClientGameTestContext context) {
         context.runOnClient(client -> {
+            long rendererGeneration = Blaze3DDeviceLifecycle.generation();
+            if (rendererGeneration == 0) throw new AssertionError("Blaze3D renderer lifecycle was not initialized");
+            AtomicInteger ready = new AtomicInteger();
+            AtomicInteger lost = new AtomicInteger();
+            Blaze3DDeviceLifecycle.Resource probe = new Blaze3DDeviceLifecycle.Resource() {
+                @Override
+                public void onDeviceReady(com.mojang.blaze3d.systems.GpuDevice device, long generation) {
+                    if (generation != rendererGeneration) throw new AssertionError("Wrong Blaze3D device generation");
+                    ready.incrementAndGet();
+                }
+
+                @Override
+                public void onDeviceLost(com.mojang.blaze3d.systems.GpuDevice device) {
+                    lost.incrementAndGet();
+                }
+            };
+            Blaze3DDeviceLifecycle.register(probe);
+            if (ready.get() != 1) throw new AssertionError("Resource did not attach to active Blaze3D device");
+            Blaze3DDeviceLifecycle.unregister(probe);
+            if (lost.get() != 1) throw new AssertionError("Resource did not detach from active Blaze3D device");
+
             long before = Mipmaps.completed();
             try (NativeImage base = new NativeImage(16, 16, true)) {
                 for (int y = 0; y < 16; y++) for (int x = 0; x < 16; x++) base.setPixel(x, y, 0xffffffff);
