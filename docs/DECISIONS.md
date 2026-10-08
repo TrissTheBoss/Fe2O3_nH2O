@@ -119,3 +119,29 @@ the released mod, while their logs show the independent wgpu stage used Vulkan
 for both. Official 26.2 migration notes document `DeviceInfo#backendName`;
 Fabric's 26.2 rendering guide requires the Blaze3D abstraction. The implementation
 must still pass 26.2 compilation and live-client CI before merge.
+
+
+## ADR-008 — Tie future renderer resources to Blaze3D device generations (2026-10-08, accepted)
+
+Context: backend preference matching only selects an API for the independent
+wgpu compute device. A future Blaze3D render pass needs resources created for
+the actual active Minecraft device and deterministic release before device
+replacement or renderer shutdown.
+
+Decision: observe RenderSystem.initRenderer before and after initialization,
+release registered resources while the prior device is still current, and issue
+ready callbacks with the new GpuDevice and a monotonically increasing
+generation. Release remaining resources at GameRenderer.close. Keep all
+callbacks on Minecraft's render thread. Isolate resource callback failures from
+Minecraft startup and shutdown, and remove a resource that fails to initialize
+or release. Do not expose backend-specific raw handles through this lifecycle.
+
+Alternative: continue using the independent wgpu device or add a separate
+window/surface. Those paths do not prove interoperability with Minecraft's
+frame graph and synchronization. Do not add an overlay as a substitute.
+
+Consequences: this supplies the device-owned resource lifecycle boundary but
+does not create a render pass or share the existing mipmap compute device.
+A real resource must register and pass backend, recreation, reload, resize and
+shutdown tests before an actual vanilla pass can be replaced. The callback path
+and mixin signatures require Minecraft 26.2 CI and live-client validation.
