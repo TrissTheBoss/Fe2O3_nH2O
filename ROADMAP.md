@@ -13,8 +13,10 @@ linked test run; **planned** means it does not exist. No percentage estimates.
 - Documentation, contributor workflow and repository hygiene rules.
 - Outstanding: physical-GPU measurements and end-to-end performance evidence.
 
-## M1 — qualify texture preparation (planned)
+## M1 — qualify texture preparation (in progress)
 
+- Added an opt-in end-to-end vanilla/WebGPU mipmap benchmark with equality checks;
+  machine-specific measurements and threshold selection are still pending.
 - Run the complete resource-pack matrix and reload stress tests.
 - Measure CPU preparation, JNI copies, dispatch/readback and total reload time.
 - Choose the threshold from representative Intel/AMD/NVIDIA/Apple measurements.
