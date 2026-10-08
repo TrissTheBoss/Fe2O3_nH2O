@@ -24,13 +24,17 @@ linked test run; **planned** means it does not exist. No percentage estimates.
 - Add cutout/coverage handling only if it can remain exactly compatible and faster.
 - Add verified additional native targets, dependency audit and release provenance.
 
-## M2 — first world draw replacement (planned)
+## M2 — Blaze3D backend integration and first world pass (planned)
 
-- Evaluate community wgpu/native-window integration against Blaze3D 26.2.
-- Choose an explicit framebuffer ownership and presentation architecture.
-- Prove depth, blending, synchronization and resource reload correctness.
-- Replace one isolated pass with rollback to vanilla; do not label a diagnostic
-  triangle or extra overlay a replacement of vanilla rendering.
+- Assess the current wgpu-mc/Electrum rewrite as the community backend reference;
+  verify its stable 26.2 compatibility, API maturity, distribution terms and build.
+- Define who owns the frame graph, color/depth targets, synchronization and
+  resource reload lifecycle before connecting a second GPU backend.
+- Implement the backend boundary through Blaze3D, preserving OpenGL and Vulkan
+  compatibility; avoid a separate raw-window surface unless interoperability is
+  proven for the Minecraft-owned frame.
+- Replace one actual vanilla world pass with a tested rollback path; do not count
+  a diagnostic triangle or extra overlay as a replacement.
 
 ## M3 — world renderer and vanilla parity (planned)
 

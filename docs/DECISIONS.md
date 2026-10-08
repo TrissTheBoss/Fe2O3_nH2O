@@ -55,3 +55,38 @@ cannot create a false positive. Require a Vulkan software adapter in Linux CI;
 do not silently skip GPU tests there. Separate this evidence from native hardware
 testing, a Mixin-enabled game launch, world rendering parity and performance.
 
+## ADR-006 — Integrate through Blaze3D; evaluate the community backend first (2026-10-08, accepted)
+
+M0 owns an independent wgpu device for texture computation and returns mip pixels
+to Minecraft. That proves no framebuffer sharing, window presentation, or world
+draw integration. Minecraft 26.2 has an optional Vulkan backend; Fabric's 26.2
+rendering guidance requires the Blaze3D abstraction and describes separate render
+data extraction and drawing phases. A parallel raw-window wgpu surface would
+create a second presentation path without proving that it can safely share
+Minecraft's frame graph, depth buffer, or synchronization.
+
+The community `wgpu-mc` / Electrum project is the closest existing solution.
+Its current README says it is rewriting for Minecraft's newer renderer and puts
+full Blaze3D backend compatibility ahead of returning to terrain replacement.
+The current main branch also targets Minecraft 26.2-rc1, carries its own tool
+and dependency set, and presents different license declarations across project
+files. It is a reference to assess, not a stable drop-in dependency for this
+26.2 project.
+
+Decision: use Blaze3D's backend boundary as the integration target and assess
+wgpu-mc/Electrum before implementing a separate backend. Do not create an
+independent native surface or add a demonstration overlay as a substitute for a
+vanilla pass. Before adopting upstream code, pin an exact revision and verify
+stable 26.2 compatibility, Java/native ABI, distribution terms, build process,
+and the no-extra-user-mod requirement. Keep the existing M0 texture stage
+separate until a tested backend lifecycle can own real frame output.
+
+Sources:
+- [Fabric 26.2 rendering concepts](https://docs.fabricmc.net/develop/rendering/basic-concepts)
+- [Fabric world rendering and extraction/drawing phases](https://docs.fabricmc.net/develop/rendering/world)
+- [wgpu-mc / Electrum upstream status](https://github.com/wgpu-mc/wgpu-mc)
+- [wgpu raw surface lifetime requirements](https://docs.rs/wgpu/26.0.1/wgpu/enum.SurfaceTargetUnsafe.html)
+
+Consequences: M2 starts with backend compatibility and ownership validation,
+then proceeds to one actual world pass with a vanilla rollback. No M2 rendering
+code or visual parity is claimed by this decision.
