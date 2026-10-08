@@ -27,7 +27,7 @@ jobs:
           version=json.loads(get(release["url"]))
           print("JAVA", version["javaVersion"])
           open("client.jar","wb").write(get(version["downloads"]["client"]["url"]))
-          for cls in ["net.minecraft.client.renderer.texture.MipmapGenerator","com.mojang.blaze3d.platform.NativeImage","net.minecraft.client.renderer.texture.SpriteContents"]:
+          for cls in ["net.minecraft.util.ARGB","net.minecraft.client.renderer.texture.MipmapStrategy","com.mojang.blaze3d.platform.Transparency"]:
               print("\nAPI", cls, flush=True)
               subprocess.run(["javap","-classpath","client.jar","-p","-c",cls],check=True)
           for url in ["https://maven.fabricmc.net/net/fabricmc/fabric-loom/maven-metadata.xml","https://meta.fabricmc.net/v2/versions/loader/26.2","https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml"]:
