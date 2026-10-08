@@ -10,6 +10,9 @@
 - Source ownership/content, opaque AUTO GPU eligibility and pixel-exact output,
   specialized pack-strategy fallback, supplied mip fallback, zero/excessive
   levels, JNI invalid shapes and recovery after rejection.
+- An opt-in informational benchmark compares complete vanilla and WebGPU/JNI
+  mipmap calls on three opaque image sizes after warmup; it checks output equality
+  and reports median/p95 without asserting a performance win.
 - Platform identifier mapping. Mandatory adapter execution in Linux CI; native
   compilation alone on other platforms is not GPU validation.
 - A separate Fabric client test uses the packaged mod and real Mixin, checks a
