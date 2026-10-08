@@ -16,6 +16,12 @@ automatic merge. Keep main usable; describe the implemented scope and gaps in
 each PR. Before review: run relevant tests, inspect the complete diff, verify
 resource contents, confirm no generated output or secrets, and update status docs.
 
+Protect `main` with an active GitHub ruleset: require pull requests, block
+force-pushes and deletion, and require the `native (ubuntu-24.04)`,
+`native (windows-2022)`, `native (macos-15)`, `native (macos-15-intel)` and
+`verify` checks before merging. Do not require the `publish-prerelease` job on
+branch PRs; it only runs for release tags.
+
 ## Dependencies and CI
 
 Use published community dependencies with reviewed licenses. Pin toolchain and
