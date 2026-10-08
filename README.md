@@ -21,6 +21,26 @@ unsupported image formats/sizes and unavailable native backends use vanilla.
 Resource-pack images are consumed after Minecraft loads them; the mod does not
 replace the resource-pack loader, model baker or animation metadata handling.
 
+## Blaze3D and Graphics API selection
+
+Minecraft 26.2 already renders through Blaze3D. Blaze3D is the renderer layer
+between Minecraft's rendering code and its selected graphics backend. The
+vanilla **Graphics API** video preference chooses how Blaze3D is backed
+(currently OpenGL or experimental Vulkan); Blaze3D itself is not a preference
+that a mod can switch to.
+
+Fe2O3 does not edit `options.txt`, force OpenGL/Vulkan, or run a competing
+renderer. Its current mipmap compute stage uses an independent wgpu device and
+returns pixels to Minecraft. World draws remain in Minecraft/Blaze3D. This keeps
+the mod compatible with the backend Minecraft successfully initializes and lets
+Minecraft apply its own startup crash fallback.
+
+A future Blaze3D backend integration must bind to Minecraft's active device at
+initialization, and refresh GPU resources when Minecraft recreates or changes
+that device. It must not change the user's Graphics API preference. Automatic
+binding/rebinding and a world-pass replacement are **planned, not implemented**;
+see [the renderer roadmap](ROADMAP.md#renderer-backend-lifecycle).
+
 ## Install and use
 
 1. Install Minecraft **26.2**, Java 25 and Fabric Loader **0.19.5 or later**.
@@ -81,4 +101,3 @@ constraints and failure diagnosis.
 - [Third-party notices](NOTICE.md): upstream projects and dependency policy.
 
 Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.
-
