@@ -2,6 +2,7 @@
 import hashlib
 import json
 import pathlib
+import shutil
 import zipfile
 
 artifacts = [p for p in pathlib.Path("build/libs").glob("*.jar") if not p.name.endswith("-sources.jar") and "gametest" not in p.name]
@@ -27,6 +28,10 @@ with zipfile.ZipFile(path) as jar:
     assert len(jar.read("natives/licenses/third-party.html")) > 1000
 digest = hashlib.sha256(path.read_bytes()).hexdigest()
 path.with_suffix(".jar.sha256").write_text(f"{digest}  {path.name}\n", encoding="ascii")
+distribution = pathlib.Path("build/distributions")
+distribution.mkdir(parents=True, exist_ok=True)
+shutil.copyfile(path, distribution / path.name)
+shutil.copyfile(path.with_suffix(".jar.sha256"), distribution / (path.name + ".sha256"))
 print(f"Verified metadata, production/test isolation, four native payloads and notices: {path}")
 print(f"SHA-256: {digest}")
 

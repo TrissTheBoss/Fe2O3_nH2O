@@ -10,6 +10,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Blocks;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 /** Real client/Mixin smoke coverage. Screenshots are evidence, not parity baselines. */
 public final class ClientSmokeTest implements FabricClientGameTest {
     @Override
@@ -54,6 +57,12 @@ public final class ClientSmokeTest implements FabricClientGameTest {
             world.getConnection().waitForChunksRender();
             context.takeScreenshot("after-resource-reload");
         }
+        try {
+            Files.writeString(Path.of("FE2O3_CLIENT_TEST_PASSED"), "mixin, scene and resource reload passed\n");
+        } catch (java.io.IOException e) {
+            throw new AssertionError("Unable to write client test completion marker", e);
+        }
+        System.out.println("[Fe2O3] CLIENT_TEST_COMPLETE");
     }
 }
 

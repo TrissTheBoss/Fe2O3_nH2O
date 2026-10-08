@@ -20,13 +20,16 @@ device type **CPU**. This verifies native WebGPU computation on software Vulkan,
 not a hardware performance result. First live GPU request in that JVM was a
 2x2 source with one generated level.
 
-The initial artifact exists, but the next validation adds dependency notices,
-package inspection and a real Minecraft client test. Prefer the final validated
-artifact once that run is recorded below.
+A later client-launch attempt (Actions run 37797119698) started Minecraft and
+initialized the Mixin/native library, but the separate client-test mod was not
+on the production run classpath. It produced no scene screenshots. This is a
+false positive from the launch task exiting successfully; it is not counted as
+a passing client test. The workflow now explicitly supplies the remapped
+`gametest` JAR and requires a completion marker plus both screenshots.
 
 ## Outstanding gates
 
-- Live Mixin-enabled Minecraft client, scene and resource reload: pending.
+- Live Mixin-enabled Minecraft client, scene and resource reload: pending after fixing test-mod classpath wiring; CI must prove execution.
 - Four-native JAR payload/checksum verification and generated notices: pending.
 - Windows/macOS GPU execution, physical GPUs and Minecraft Vulkan presentation: pending.
 - Full resource-pack and visual parity matrix: pending.

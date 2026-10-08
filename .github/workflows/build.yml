@@ -83,7 +83,12 @@ jobs:
       - name: Verify packaged native payloads and checksums
         run: python3 tools/verify_jar.py
       - name: Launch Minecraft and verify live Mixin, scene and reload
-        run: gradle --no-daemon runProductionClientGameTest
+        run: |
+          rm -f build/run/clientGameTest/FE2O3_CLIENT_TEST_PASSED
+          gradle --no-daemon runProductionClientGameTest
+          test -s build/run/clientGameTest/FE2O3_CLIENT_TEST_PASSED
+          test -s build/run/clientGameTest/screenshots/terrain-partial-blocks-entity-particles-sky.png
+          test -s build/run/clientGameTest/screenshots/after-resource-reload.png
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
@@ -97,8 +102,6 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: fe2o3-nh2o-26.2
-          path: |
-            build/libs/*.jar
-            build/libs/*.sha256
+          path: build/distributions/*
           if-no-files-found: error
           retention-days: 30

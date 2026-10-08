@@ -25,6 +25,9 @@ dependencies {
 }
 
 tasks.register('runProductionClientGameTest', net.fabricmc.loom.task.prod.ClientProductionRunTask) {
+    // Production runs only load explicitly supplied intermediary/remapped mod JARs.
+    mods.from(tasks.named('remapGametestJar'))
+    runDir = layout.buildDirectory.dir('run/clientGameTest')
     jvmArgs.addAll('-Dfabric.client.gametest', '-Dfe2o3.minPixels=4',
         '-Dfabric.client.gametest.disableNetworkSynchronizer=true')
     useXVFB = true
