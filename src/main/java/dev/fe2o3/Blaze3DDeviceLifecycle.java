@@ -29,9 +29,12 @@ public final class Blaze3DDeviceLifecycle {
         void onDeviceLost(GpuDevice device);
     }
 
-    /** Register a resource for notifications on subsequent device lifecycle events. */
+    /** Register a resource and initialize it immediately when a device is already active. */
     public static void register(Resource resource) {
-        RESOURCES.add(Objects.requireNonNull(resource, "resource"));
+        Objects.requireNonNull(resource, "resource");
+        if (!RESOURCES.add(resource)) return;
+        GpuDevice active = DEVICE.active();
+        if (active != null) notifyReady(resource, active, DEVICE.generation());
     }
 
     /** Stop lifecycle notifications and release this resource if a device is active. */
@@ -96,8 +99,8 @@ public final class Blaze3DDeviceLifecycle {
 
     /** Small identity-based state holder, kept independent so lifecycle transitions can be unit tested. */
     static final class DeviceEpoch<T> {
-        private T active;
-        private long generation;
+        private volatile T active;
+        private volatile long generation;
 
         T active() {
             return active;
