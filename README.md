@@ -44,11 +44,15 @@ returns pixels to Minecraft. World draws remain in Minecraft/Blaze3D. This keeps
 the mod compatible with the backend Minecraft successfully initializes and lets
 Minecraft apply its own startup crash fallback.
 
-A future Blaze3D backend integration must bind to Minecraft's active device at
-initialization, and refresh GPU resources when Minecraft recreates or changes
-that device. It must not change the user's Graphics API preference. Automatic
-binding/rebinding and a world-pass replacement are **planned, not implemented**;
-see [the renderer roadmap](ROADMAP.md#renderer-backend-lifecycle).
+At renderer initialization, Fe2O3 reads Blaze3D's active device information and
+asks its independent wgpu compute instance to prefer the matching OpenGL or
+Vulkan backend. If that wgpu backend cannot initialize, it retries normal wgpu
+adapter selection. This does not share Minecraft GPU resources or change the
+user's Graphics API preference. Minecraft applies a changed Graphics API choice
+on the next game startup; Fe2O3 detects the newly initialized backend then.
+World draws remain fully vanilla. Binding resources to the actual Blaze3D
+device and replacing a world pass are **planned, not implemented**; see
+[the renderer roadmap](ROADMAP.md#renderer-backend-lifecycle).
 
 ## Install and use
 

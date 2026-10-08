@@ -9,6 +9,13 @@ dimensions no larger than 2048, the configured minimum area, and MEAN (or AUTO
 resolved to MEAN using Minecraft's Transparency). Every other request continues
 unchanged through vanilla, including its alpha-coverage and source preprocessing.
 
+After `RenderSystem.initRenderer`, a small version-specific mixin reads
+Blaze3D's active `DeviceInfo.backendName()`. The Java adapter maps OpenGL or
+Vulkan to a wgpu backend preference; unknown values stay on automatic selection.
+Rust tries that preferred API for its independent compute device and retries
+automatic wgpu selection if the preferred API fails. Minecraft's backend is
+never forced or changed.
+
 The Java adapter gets owned packed ARGB pixels and calls Rust through JNI.
 Rust uploads one source buffer, dispatches each level with 8x8 workgroups, copies
 all output levels into a single readback buffer, submits once and maps once.
@@ -32,11 +39,11 @@ chain and later performs its normal atlas uploads and drawing.
   disable acceleration for that session. Driver crashes cannot be recovered by
   language-level exception handling.
 
-## ABI v1
+## ABI v2
 
 | Java native call | Input/output contract |
 | --- | --- |
-| initialize(int[1280]) | 256 linear values in 0..1023 then 1024 sRGB values in 0..255 |
+| initialize(int[1280], String) | 256 linear values in 0..1023 then 1024 sRGB values in 0..255; backend preference is `gl`, `vulkan` or `auto` |
 | generate(int[], width, height, levels) | Exact source length; returns concatenated levels 1..N in row-major packed ARGB |
 | shutdown() | Serialized release; safe when no renderer is initialized |
 
@@ -50,7 +57,9 @@ bundled SHA-256 digest. It loads no user-provided library path and downloads no 
 `native/` knows no Minecraft classes, mappings, models or world state. The Java
 adapter and mixin are strictly pinned to Minecraft 26.2. A future backport must
 provide that version's blend tables/semantics, integration and differential tests.
-Independent WebGPU buffers avoid sharing undocumented OpenGL/Vulkan handles.
-The current stage does not depend on Minecraft's selected presentation backend.
-This architecture has readback/copy costs and is not the future world renderer.
+The selected Minecraft backend supplies a preference only: independent wgpu
+buffers still do not share OpenGL/Vulkan handles, a surface, or synchronization
+with Blaze3D. If matching wgpu initialization fails, automatic adapter selection
+preserves the current compute fallback behavior. This architecture has
+readback/copy costs and is not the future world renderer.
 
