@@ -1,0 +1,21 @@
+[package]
+name = "fe2o3_native"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.84"
+license = "MIT"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wgpu = "=26.0.1"
+jni = "=0.21.1"
+pollster = "=0.4.0"
+bytemuck = "=1.23.2"
+
+[profile.release]
+lto = "thin"
+strip = "debuginfo"
+

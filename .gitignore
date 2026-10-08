@@ -1,0 +1,12 @@
+.gradle/
+build/
+native/target/
+run/
+logs/
+crash-reports/
+*.hprof
+.idea/
+*.iml
+.DS_Store
+__pycache__/
+

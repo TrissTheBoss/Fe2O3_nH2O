@@ -1,0 +1,8 @@
+{
+  "required": true,
+  "package": "dev.fe2o3.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": ["MipmapGeneratorMixin"],
+  "injectors": {"defaultRequire": 1}
+}
+
