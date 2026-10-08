@@ -51,22 +51,31 @@ because a test changed. Keep captures outside git in linked test artifacts.
 
 ## Performance protocol — controlled benchmark pending
 
-The project owner has reported flawless gameplay and very high FPS in one
-Windows AMD Radeon RX 6800 XT test. The attached launcher log confirms a
-successful Minecraft 26.2/Fabric 0.19.5 startup, Minecraft OpenGL renderer,
-WebGPU adapter on the same GPU via Vulkan, a generated 16x512 two-level mip
-chain, and entry into a single-player world. It does not include numeric FPS
-samples, a vanilla-only comparison, or a stated scene duration. Treat the FPS
-description as a qualitative user report, not a controlled result or evidence
-that the mipmap stage caused the frame rate.
+The project owner reports two brief same-world/same-settings observations using
+the FPS Display mod on Windows, Minecraft 26.2 at 854x480, Java 25.0.1, Fabric
+Loader 0.19.5 and an AMD Radeon RX 6800 XT, with the Fe2O3 alpha.1 JAR:
+OpenGL was reported as at least 3,300 FPS; Vulkan was reported as 2,100–2,200
+FPS, with no reading above 2,300. The launcher logs show Minecraft initialized
+on OpenGL in the first run and Vulkan in the second. In both, Fe2O3 initialized
+its WebGPU mipmap adapter on Vulkan on the same Radeon GPU and generated a
+16x512 two-level chain. In-game chat in the logs records the FPS statements and
+the owner's same-world/same-settings note.
 
-For a controlled performance comparison, measure a disabled baseline against
-enabled runs of the **same JAR**. Capture adapter/device, driver, CPU, memory,
-OS, Minecraft backend, packs and dimensions. Separate cold startup, shader
-compilation, warm resource reload and steady-state frame times. Alternate the
-two modes, collect at least 10 samples after warmup, and report median/p95/p99
-plus ranges. Measure total reload latency and peak resident/native/GPU memory;
-dispatch time alone excludes JNI and readback costs.
+These are useful real-hardware backend smoke observations and show the game
+started on both Minecraft backends with the mod present. They are not a
+controlled performance benchmark: the logs do not preserve raw FPS samples,
+sampling intervals, frame-time distributions, a no-mod baseline, screenshots,
+or resource-pack/stress coverage. They do not show that mipmap generation
+caused the measured steady-state FPS. Preserve the owner's report while
+distinguishing it from a measured mod speedup.
+
+For a controlled comparison, use the same world, camera, scene, view and
+simulation distances, display resolution, resource packs and graphics settings.
+Capture raw FPS/frame-time samples from the same measurement tool, alternate
+backend runs after warmup, and record median/p95/p99 over a defined interval.
+Compare Fe2O3 enabled against disabled on each backend. Also measure reload
+latency and peak resident/native/GPU memory; dispatch time alone excludes JNI
+and readback costs.
 
 Do not call a software Vulkan result a hardware speedup. A loading-stage
 optimization should not be presented as a world-renderer benchmark. Set the
