@@ -39,4 +39,9 @@ Build from an identified commit; retain reports, checksums and dependency notice
 with the artifact. Release notes must distinguish experimental texture work from
 world renderer work. Do not ship game assets or claim vendor endorsement. Do not
 publish a stable release until the documented parity and performance gates pass.
+Tag names must match `gradle.properties`; never move or reuse published tags.
+Automated alpha/beta/rc releases must pass the full build workflow and attach the
+verified JAR with its SHA-256 sidecar. Keep the tag protected from updates and
+deletions with an active `v*` ruleset. See [RELEASES](RELEASES.md) for the
+maintainer procedure and stable-release gate.
 
