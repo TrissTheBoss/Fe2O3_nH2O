@@ -191,3 +191,19 @@ The lifecycle smoke behavior is as described above: it uses the active device
 and simulates detach/reattach with the same device object. The successful run
 does not add evidence for real device replacement or the outstanding M2 world
 pass. The PR remains open and M2 remains in progress.
+
+
+## Blaze3D callback failure isolation — 2026-10-09
+
+PR #14 code head `d3d9272ec399256e98a341159fa8a0bd0dc5783e` passed all four
+native jobs and the full verify job in
+[Actions run 37988785889](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/37988785889).
+The live Minecraft smoke test deliberately caused one resource's initialization
+callback to throw and verified its release callback ran. It also caused a
+resource's release callback to throw during simulated device detach while a
+healthy buffer resource was registered; the healthy resource still closed,
+reinitialized on simulated reattach, and remained usable.
+
+These are callback fault-containment checks on the active CI device. They do not
+test actual renderer-device replacement, hardware device loss, a production
+rendering resource, or a replaced vanilla world pass. M2 remains in progress.
