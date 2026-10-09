@@ -23,9 +23,11 @@ each installed device. GameRenderer.close releases registered resources before
 renderer shutdown. Resource callbacks must run on the render thread, must release
 handles belonging to the provided device, and should treat generations as invalid
 after the loss callback. Callback failures are logged and remove that resource
-without aborting Minecraft's renderer lifecycle. No project GPU resources are
-registered yet; this is lifecycle infrastructure. The existing wgpu mipmap
-device remains independent and is not recreated or shared through this API.
+without aborting Minecraft's renderer lifecycle. The live client smoke test
+registers a temporary 4-byte Blaze3D buffer and verifies that unregister closes
+it. No production GPU resources are registered yet; this remains lifecycle
+infrastructure. The existing wgpu mipmap device is independent and is not
+recreated or shared through this API.
 
 The Java adapter gets owned packed ARGB pixels and calls Rust through JNI.
 Rust uploads one source buffer, dispatches each level with 8x8 workgroups, copies
