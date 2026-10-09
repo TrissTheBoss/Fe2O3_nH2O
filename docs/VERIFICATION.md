@@ -157,17 +157,21 @@ the fallback is selected.
 
 ## Blaze3D resource lifecycle smoke coverage — 2026-10-09
 
-PR #12 head `4c605043bedc593655fdd1ecfcb7b186e1c86163` passed the complete
-workflow in [Actions run 37976360572](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/37976360572).
+PR #12 head `dd1d5eff782f6677b19ffa58f24cccd3858061fa` passed the complete
+workflow in [Actions run 37980116959](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/37980116959).
 All four native target jobs passed. The Fabric JAR build, mandatory software
 Vulkan differential tests, packaged-native checks, and live Minecraft client
 smoke test passed.
 
-The client test observed an active Blaze3D device generation, registered the
-same resource twice to verify idempotence, allocated a 4-byte `GpuBuffer` from
-the active `GpuDevice`, and verified unregister closed the handle exactly once.
-Existing live Mixin, scene, and resource-reload checks also passed. This verifies
-allocation and cleanup on the CI software Vulkan device; it does not exercise
-renderer replacement/device recreation on hardware, register a production GPU
-resource, share the wgpu compute device, replace a vanilla world pass, or prove
-visual parity/performance improvement. M2 remains in progress.
+The client test observed an active Blaze3D generation, registered the same
+resource twice to verify idempotence, and allocated a 4-byte `GpuBuffer` from
+the active `GpuDevice`. It then simulated lifecycle detach and reattach using
+the same active device object: the first buffer closed, the resource received a
+new generation and allocated a fresh buffer, and unregister closed that buffer.
+Existing live Mixin, scene, and resource-reload checks passed.
+
+This verifies real handle allocation, cleanup, and simulated reinitialization on
+CI software Vulkan. It does not exercise actual renderer-device replacement on
+hardware, register a production rendering resource, share the wgpu compute
+device, replace a vanilla world pass, or prove visual parity/performance
+improvement. M2 remains in progress.
