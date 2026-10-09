@@ -39,11 +39,11 @@ device, not write `options.txt` or force a backend.
   setting changes, the new initialized device is detected automatically.
 - **Implemented:** if the preferred wgpu API cannot initialize, retry normal
   wgpu adapter selection before the existing vanilla fallback.
-- **Implemented; CI verification pending:** lifecycle callbacks now run before
+- **Implemented; CI verified:** lifecycle callbacks now run before
   RenderSystem.initRenderer replaces a device, after the replacement is
   installed, and when GameRenderer.close begins. Device generations allow
   resources to reject stale handles.
-- **Implemented; CI verification pending:** the client smoke test allocates a
+- **Implemented; CI verified:** the client smoke test allocates a
   temporary 4-byte `GpuBuffer` on the active `GpuDevice` and verifies that
   unregister closes it. This covers real handle ownership and cleanup, not
   renderer replacement or a production rendering resource.
