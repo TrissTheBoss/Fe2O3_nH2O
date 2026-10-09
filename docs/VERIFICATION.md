@@ -175,3 +175,19 @@ CI software Vulkan. It does not exercise actual renderer-device replacement on
 hardware, register a production rendering resource, share the wgpu compute
 device, replace a vanilla world pass, or prove visual parity/performance
 improvement. M2 remains in progress.
+
+
+## Exact documentation-head verification — 2026-10-09
+
+PR #12 documentation head `298458db44ab8ebb78fe380c93e379c3d965cc15`
+passed all four native matrix jobs and the full `verify` job in
+[Actions run 37980839098](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/37980839098).
+The first attempt's verify job was cancelled while the client smoke test was
+running; a rerun of that job completed successfully. The completed attempt
+passed software Vulkan installation, Fabric JAR build and vanilla differential
+tests, packaged-native checksums, and the live Minecraft client test.
+
+The lifecycle smoke behavior is as described above: it uses the active device
+and simulates detach/reattach with the same device object. The successful run
+does not add evidence for real device replacement or the outstanding M2 world
+pass. The PR remains open and M2 remains in progress.
