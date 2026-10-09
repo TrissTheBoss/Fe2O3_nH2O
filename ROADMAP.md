@@ -43,8 +43,12 @@ device, not write `options.txt` or force a backend.
   RenderSystem.initRenderer replaces a device, after the replacement is
   installed, and when GameRenderer.close begins. Device generations allow
   resources to reject stale handles.
-- **Remaining:** register a real renderer resource and verify creation/release on
-  hardware and device recreation. The current compute stage still owns an
+- **Implemented; CI verification pending:** the client smoke test allocates a
+  temporary 4-byte `GpuBuffer` on the active `GpuDevice` and verifies that
+  unregister closes it. This covers real handle ownership and cleanup, not
+  renderer replacement or a production rendering resource.
+- **Remaining:** attach production resources needed by the first world pass and
+  verify device recreation on hardware. The current compute stage still owns an
   independent wgpu device; this lifecycle API does not share it with Blaze3D.
 - Preserve vanilla startup fallback; backend initialization failures leave
   vanilla rendering usable and disable Fe2O3's replacement for that session.
