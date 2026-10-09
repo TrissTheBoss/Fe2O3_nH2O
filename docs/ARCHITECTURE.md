@@ -23,10 +23,11 @@ each installed device. GameRenderer.close releases registered resources before
 renderer shutdown. Resource callbacks must run on the render thread, must release
 handles belonging to the provided device, and should treat generations as invalid
 after the loss callback. Callback failures are logged and remove that resource
-without aborting Minecraft's renderer lifecycle. The live client smoke test
-registers a temporary 4-byte Blaze3D buffer and verifies that unregister closes
-it. No production GPU resources are registered yet; this remains lifecycle
-infrastructure. The existing wgpu mipmap device is independent and is not
+without aborting Minecraft's renderer lifecycle. The live client smoke test registers a temporary 4-byte Blaze3D buffer,
+verifies cleanup during detach, and verifies that the same resource rebuilds its
+buffer for a later generation. The test simulates detach/reattach on the active
+device; it does not replace the renderer device. No production GPU resources
+are registered yet; this remains lifecycle infrastructure. The existing wgpu mipmap device is independent and is not
 recreated or shared through this API.
 
 The Java adapter gets owned packed ARGB pixels and calls Rust through JNI.

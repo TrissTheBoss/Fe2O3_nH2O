@@ -44,9 +44,10 @@ device, not write `options.txt` or force a backend.
   installed, and when GameRenderer.close begins. Device generations allow
   resources to reject stale handles.
 - **Implemented; CI verified:** the client smoke test allocates a
-  temporary 4-byte `GpuBuffer` on the active `GpuDevice` and verifies that
-  unregister closes it. This covers real handle ownership and cleanup, not
-  renderer replacement or a production rendering resource.
+  temporary 4-byte `GpuBuffer` on the active `GpuDevice`, verifies cleanup on
+  detach, and verifies that it is rebuilt for a later generation. This covers
+  real handle ownership and simulated reinitialization using the same device
+  object, not actual renderer-device replacement or a production resource.
 - **Remaining:** attach production resources needed by the first world pass and
   verify device recreation on hardware. The current compute stage still owns an
   independent wgpu device; this lifecycle API does not share it with Blaze3D.
