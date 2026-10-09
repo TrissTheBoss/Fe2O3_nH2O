@@ -2,7 +2,6 @@
   "required": true,
   "package": "dev.fe2o3.mixin",
   "compatibilityLevel": "JAVA_25",
-  "client": ["MipmapGeneratorMixin", "RenderSystemMixin"],
+  "client": ["MipmapGeneratorMixin", "RenderSystemMixin", "GameRendererMixin"],
   "injectors": {"defaultRequire": 1}
 }
-

@@ -16,6 +16,20 @@ Rust tries that preferred API for its independent compute device and retries
 automatic wgpu selection if the preferred API fails. Minecraft's backend is
 never forced or changed.
 
+Blaze3DDeviceLifecycle brackets RenderSystem.initRenderer: resource loss callbacks
+run at the method head while the old device is current; ready callbacks run after
+the new device is installed. A monotonically increasing generation identifies
+each installed device. GameRenderer.close releases registered resources before
+renderer shutdown. Resource callbacks must run on the render thread, must release
+handles belonging to the provided device, and should treat generations as invalid
+after the loss callback. Callback failures are logged and remove that resource
+without aborting Minecraft's renderer lifecycle. The live client smoke test registers a temporary 4-byte Blaze3D buffer,
+verifies cleanup during detach, and verifies that the same resource rebuilds its
+buffer for a later generation. The test simulates detach/reattach on the active
+device; it does not replace the renderer device. No production GPU resources
+are registered yet; this remains lifecycle infrastructure. The existing wgpu mipmap device is independent and is not
+recreated or shared through this API.
+
 The Java adapter gets owned packed ARGB pixels and calls Rust through JNI.
 Rust uploads one source buffer, dispatches each level with 8x8 workgroups, copies
 all output levels into a single readback buffer, submits once and maps once.

@@ -153,3 +153,41 @@ physical-GPU behavior, in-place backend switching, a world-rendering pass,
 visual parity or performance improvement. Hardware tests on the owner's RX
 6800 XT remain necessary to determine whether wgpu GL is preferable there or
 the fallback is selected.
+
+
+## Blaze3D resource lifecycle smoke coverage — 2026-10-09
+
+PR #12 head `dd1d5eff782f6677b19ffa58f24cccd3858061fa` passed the complete
+workflow in [Actions run 37980116959](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/37980116959).
+All four native target jobs passed. The Fabric JAR build, mandatory software
+Vulkan differential tests, packaged-native checks, and live Minecraft client
+smoke test passed.
+
+The client test observed an active Blaze3D generation, registered the same
+resource twice to verify idempotence, and allocated a 4-byte `GpuBuffer` from
+the active `GpuDevice`. It then simulated lifecycle detach and reattach using
+the same active device object: the first buffer closed, the resource received a
+new generation and allocated a fresh buffer, and unregister closed that buffer.
+Existing live Mixin, scene, and resource-reload checks passed.
+
+This verifies real handle allocation, cleanup, and simulated reinitialization on
+CI software Vulkan. It does not exercise actual renderer-device replacement on
+hardware, register a production rendering resource, share the wgpu compute
+device, replace a vanilla world pass, or prove visual parity/performance
+improvement. M2 remains in progress.
+
+
+## Exact documentation-head verification — 2026-10-09
+
+PR #12 documentation head `298458db44ab8ebb78fe380c93e379c3d965cc15`
+passed all four native matrix jobs and the full `verify` job in
+[Actions run 37980839098](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/37980839098).
+The first attempt's verify job was cancelled while the client smoke test was
+running; a rerun of that job completed successfully. The completed attempt
+passed software Vulkan installation, Fabric JAR build and vanilla differential
+tests, packaged-native checksums, and the live Minecraft client test.
+
+The lifecycle smoke behavior is as described above: it uses the active device
+and simulates detach/reattach with the same device object. The successful run
+does not add evidence for real device replacement or the outstanding M2 world
+pass. The PR remains open and M2 remains in progress.

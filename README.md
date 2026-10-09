@@ -52,9 +52,12 @@ Vulkan backend. If that wgpu backend cannot initialize, it retries normal wgpu
 adapter selection. This does not share Minecraft GPU resources or change the
 user's Graphics API preference. Minecraft applies a changed Graphics API choice
 on the next game startup; Fe2O3 detects the newly initialized backend then.
-World draws remain fully vanilla. Binding resources to the actual Blaze3D
-device and replacing a world pass are **planned, not implemented**; see
-[the renderer roadmap](ROADMAP.md#renderer-backend-lifecycle).
+World draws remain fully vanilla. Fe2O3 now provides a render-thread lifecycle
+callback API for resources owned by the active Blaze3D device, with teardown
+before device replacement, initialization afterward, generation numbers, and
+renderer-close cleanup. No Fe2O3 draw resource uses it yet, and the mipmap stage
+still owns an independent wgpu device. Replacing a world pass is **planned, not
+implemented**; see [the renderer roadmap](ROADMAP.md#renderer-backend-lifecycle).
 
 ## Install and use
 
