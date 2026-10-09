@@ -61,6 +61,14 @@ device, not write `options.txt` or force a backend.
   Roll back to that vanilla pass on unsupported capabilities or failure.
 
 ### Community backend reference
+Current readiness check (2026-10-09): wgpu-mc/Electrum's README still describes
+its Blaze3D compatibility rewrite, followed by future terrain work; the upstream
+repository has no published releases. Do not depend on its moving default
+branch or copy its unfinished implementation. Re-evaluate a pinned upstream
+revision when it publishes a supported 26.2 integration path. Fabric's custom
+world-render events are additive, so an event overlay does not satisfy the
+first-world-pass gate. See ADR-009 for the evidence and adoption criteria.
+
 
 Assess the current wgpu-mc/Electrum rewrite as a community solution. Its stated
 goal is first full Blaze3D backend compatibility, followed by terrain replacement.

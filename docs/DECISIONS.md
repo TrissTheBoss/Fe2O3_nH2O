@@ -145,3 +145,41 @@ does not create a render pass or share the existing mipmap compute device.
 A real resource must register and pass backend, recreation, reload, resize and
 shutdown tests before an actual vanilla pass can be replaced. The callback path
 and mixin signatures require Minecraft 26.2 CI and live-client validation.
+
+
+## ADR-009 — Gate world-pass work on a supported Blaze3D integration path (2026-10-09, accepted)
+
+Context: PR #12 adds device lifecycle callbacks, but the project still needs to
+replace one actual vanilla world pass to complete M2. The closest community
+renderer, wgpu-mc/Electrum, documents a rewrite for Minecraft's newer rendering
+architecture. Its stated sequence is full Blaze3D backend compatibility first,
+then experimentation on terrain and chunk meshing. On 2026-10-09, its public
+GitHub repository had no published releases and no open pull requests. Fabric's
+26.2 world-rendering API documents extraction/drawing and custom rendering
+events; these add custom content and do not themselves replace a vanilla pass.
+
+Decision: do not pin the upstream default branch, vendor or adapt its unfinished
+implementation, or treat an additive Fabric event as a replaced vanilla pass.
+Continue tracking upstream and only adopt a specific immutable revision after
+checking 26.2 compatibility, build and test process, licensing, native ABI,
+Blaze3D device/frame ownership, and whether it can ship without another
+user-installed mod. A first-pass change must use that supported path or a
+separately reviewed stable public integration point, keep a vanilla rollback,
+and prove frame output and lifecycle behavior.
+
+Alternatives: add a diagnostic overlay now (does not satisfy pass replacement);
+copy unfinished upstream code (creates an unmaintained fork and bypasses the
+requested community solution); build a second renderer/surface independently
+(increases interoperability and synchronization risk without proving access to
+Minecraft's frame).
+
+Consequences: M2 remains in progress. The existing lifecycle infrastructure is
+useful groundwork, but no production rendering resource or world pass is
+claimed. This is a readiness gate, not a claim that later renderer work is
+impossible.
+
+Evidence:
+- [wgpu-mc/Electrum README](https://github.com/wgpu-mc/wgpu-mc#electrum--rust-based-rendering-engine-mod-for-minecraft)
+- [wgpu-mc releases](https://github.com/wgpu-mc/wgpu-mc/releases)
+- [Fabric 26.2 world rendering](https://docs.fabricmc.net/develop/rendering/world)
+- [Fabric 26.2 rendering concepts](https://docs.fabricmc.net/develop/rendering/basic-concepts)
