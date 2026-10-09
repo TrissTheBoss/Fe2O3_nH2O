@@ -153,3 +153,21 @@ physical-GPU behavior, in-place backend switching, a world-rendering pass,
 visual parity or performance improvement. Hardware tests on the owner's RX
 6800 XT remain necessary to determine whether wgpu GL is preferable there or
 the fallback is selected.
+
+
+## Blaze3D resource lifecycle smoke coverage — 2026-10-09
+
+PR #12 head `4c605043bedc593655fdd1ecfcb7b186e1c86163` passed the complete
+workflow in [Actions run 37976360572](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/37976360572).
+All four native target jobs passed. The Fabric JAR build, mandatory software
+Vulkan differential tests, packaged-native checks, and live Minecraft client
+smoke test passed.
+
+The client test observed an active Blaze3D device generation, registered the
+same resource twice to verify idempotence, allocated a 4-byte `GpuBuffer` from
+the active `GpuDevice`, and verified unregister closed the handle exactly once.
+Existing live Mixin, scene, and resource-reload checks also passed. This verifies
+allocation and cleanup on the CI software Vulkan device; it does not exercise
+renderer replacement/device recreation on hardware, register a production GPU
+resource, share the wgpu compute device, replace a vanilla world pass, or prove
+visual parity/performance improvement. M2 remains in progress.
