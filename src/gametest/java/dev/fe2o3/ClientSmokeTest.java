@@ -21,20 +21,22 @@ public final class ClientSmokeTest implements FabricClientGameTest {
     @Override
     public void runTest(ClientGameTestContext context) {
         context.runOnClient(client -> {
-            long rendererGeneration = Blaze3DDeviceLifecycle.generation();
-            if (rendererGeneration == 0) throw new AssertionError("Blaze3D renderer lifecycle was not initialized");
+            long initialGeneration = Blaze3DDeviceLifecycle.generation();
+            if (initialGeneration == 0) throw new AssertionError("Blaze3D renderer lifecycle was not initialized");
             AtomicInteger ready = new AtomicInteger();
             AtomicInteger lost = new AtomicInteger();
             AtomicReference<GpuBuffer> ownedBuffer = new AtomicReference<>();
             Blaze3DDeviceLifecycle.Resource probe = new Blaze3DDeviceLifecycle.Resource() {
                 @Override
                 public void onDeviceReady(com.mojang.blaze3d.systems.GpuDevice device, long generation) {
-                    if (generation != rendererGeneration) throw new AssertionError("Wrong Blaze3D device generation");
+                    if (generation != Blaze3DDeviceLifecycle.generation()) {
+                        throw new AssertionError("Resource received a stale Blaze3D device generation");
+                    }
                     GpuBuffer buffer = device.createBuffer(
                             () -> "Fe2O3 lifecycle smoke test", GpuBuffer.USAGE_COPY_DST, 4);
                     if (!ownedBuffer.compareAndSet(null, buffer)) {
                         buffer.close();
-                        throw new AssertionError("Lifecycle resource initialized more than once");
+                        throw new AssertionError("Lifecycle resource initialized before releasing its old buffer");
                     }
                     ready.incrementAndGet();
                 }
@@ -42,21 +44,36 @@ public final class ClientSmokeTest implements FabricClientGameTest {
                 @Override
                 public void onDeviceLost(com.mojang.blaze3d.systems.GpuDevice device) {
                     GpuBuffer buffer = ownedBuffer.getAndSet(null);
-                    if (buffer != null) buffer.close();
+                    if (buffer == null) throw new AssertionError("Lifecycle resource lost without an owned buffer");
+                    buffer.close();
                     lost.incrementAndGet();
                 }
             };
             Blaze3DDeviceLifecycle.register(probe);
             Blaze3DDeviceLifecycle.register(probe);
             if (ready.get() != 1) throw new AssertionError("Resource did not attach exactly once to active Blaze3D device");
-            GpuBuffer allocatedBuffer = ownedBuffer.get();
-            if (allocatedBuffer == null || allocatedBuffer.isClosed()) {
+            GpuBuffer firstBuffer = ownedBuffer.get();
+            if (firstBuffer == null || firstBuffer.isClosed()) {
                 throw new AssertionError("Resource did not create a live Blaze3D buffer");
             }
+
+            Blaze3DDeviceLifecycle.rendererClosing();
+            if (lost.get() != 1 || !firstBuffer.isClosed()) {
+                throw new AssertionError("Renderer detach did not close the first Blaze3D buffer");
+            }
+            long detachedGeneration = Blaze3DDeviceLifecycle.generation();
+            Blaze3DDeviceLifecycle.rendererInitialized(com.mojang.blaze3d.systems.RenderSystem.getDevice());
+            if (Blaze3DDeviceLifecycle.generation() != detachedGeneration + 1 || ready.get() != 2) {
+                throw new AssertionError("Resource did not reinitialize for the next Blaze3D generation");
+            }
+
+            GpuBuffer secondBuffer = ownedBuffer.get();
+            if (secondBuffer == null || secondBuffer == firstBuffer || secondBuffer.isClosed()) {
+                throw new AssertionError("Resource did not create a fresh Blaze3D buffer after reinitialization");
+            }
             Blaze3DDeviceLifecycle.unregister(probe);
-            if (lost.get() != 1) throw new AssertionError("Resource did not detach exactly once from active Blaze3D device");
-            if (ownedBuffer.get() != null || !allocatedBuffer.isClosed()) {
-                throw new AssertionError("Resource did not close its Blaze3D buffer on detach");
+            if (lost.get() != 2 || ownedBuffer.get() != null || !secondBuffer.isClosed()) {
+                throw new AssertionError("Resource did not close the rebuilt Blaze3D buffer on unregister");
             }
 
             long before = Mipmaps.completed();
