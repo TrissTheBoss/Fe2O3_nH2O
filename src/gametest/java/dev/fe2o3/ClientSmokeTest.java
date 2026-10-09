@@ -1,5 +1,6 @@
 package dev.fe2o3;
 
+import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.platform.Transparency;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
@@ -11,6 +12,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Blocks;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -23,22 +25,39 @@ public final class ClientSmokeTest implements FabricClientGameTest {
             if (rendererGeneration == 0) throw new AssertionError("Blaze3D renderer lifecycle was not initialized");
             AtomicInteger ready = new AtomicInteger();
             AtomicInteger lost = new AtomicInteger();
+            AtomicReference<GpuBuffer> ownedBuffer = new AtomicReference<>();
             Blaze3DDeviceLifecycle.Resource probe = new Blaze3DDeviceLifecycle.Resource() {
                 @Override
                 public void onDeviceReady(com.mojang.blaze3d.systems.GpuDevice device, long generation) {
                     if (generation != rendererGeneration) throw new AssertionError("Wrong Blaze3D device generation");
+                    GpuBuffer buffer = device.createBuffer(
+                            () -> "Fe2O3 lifecycle smoke test", GpuBuffer.USAGE_COPY_DST, 4);
+                    if (!ownedBuffer.compareAndSet(null, buffer)) {
+                        buffer.close();
+                        throw new AssertionError("Lifecycle resource initialized more than once");
+                    }
                     ready.incrementAndGet();
                 }
 
                 @Override
                 public void onDeviceLost(com.mojang.blaze3d.systems.GpuDevice device) {
+                    GpuBuffer buffer = ownedBuffer.getAndSet(null);
+                    if (buffer != null) buffer.close();
                     lost.incrementAndGet();
                 }
             };
             Blaze3DDeviceLifecycle.register(probe);
-            if (ready.get() != 1) throw new AssertionError("Resource did not attach to active Blaze3D device");
+            Blaze3DDeviceLifecycle.register(probe);
+            if (ready.get() != 1) throw new AssertionError("Resource did not attach exactly once to active Blaze3D device");
+            GpuBuffer allocatedBuffer = ownedBuffer.get();
+            if (allocatedBuffer == null || allocatedBuffer.isClosed()) {
+                throw new AssertionError("Resource did not create a live Blaze3D buffer");
+            }
             Blaze3DDeviceLifecycle.unregister(probe);
-            if (lost.get() != 1) throw new AssertionError("Resource did not detach from active Blaze3D device");
+            if (lost.get() != 1) throw new AssertionError("Resource did not detach exactly once from active Blaze3D device");
+            if (ownedBuffer.get() != null || !allocatedBuffer.isClosed()) {
+                throw new AssertionError("Resource did not close its Blaze3D buffer on detach");
+            }
 
             long before = Mipmaps.completed();
             try (NativeImage base = new NativeImage(16, 16, true)) {
