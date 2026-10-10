@@ -62,6 +62,8 @@ device, not write `options.txt` or force a backend.
 
 ### Community backend reference
 
+- **Candidate review complete; adoption deferred:** see [ADR-010](docs/adr/010-community-backend-adoption.md) for the wgpu-mc/Electrum assessment and the evidence required before pinning it.
+
 Assess the current wgpu-mc/Electrum rewrite as a community solution. Its stated
 goal is first full Blaze3D backend compatibility, followed by terrain replacement.
 Pin and adopt it only after stable 26.2 compatibility, API maturity, distribution
