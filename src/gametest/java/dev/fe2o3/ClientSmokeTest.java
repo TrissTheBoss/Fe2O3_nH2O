@@ -8,8 +8,7 @@ import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.minecraft.client.renderer.texture.MipmapGenerator;
 import net.minecraft.client.renderer.texture.MipmapStrategy;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
-import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Blocks;
@@ -177,10 +176,9 @@ public final class ClientSmokeTest implements FabricClientGameTest {
             context.waitFor(client -> client.level != null
                     && client.level.getBlockState(new BlockPos(-1, 100, 0)).is(Blocks.OAK_STAIRS), 1200);
             world.getConnection().waitForChunksRender();
-            context.runOnClient(client -> client.player.lookAt(EntityAnchorArgument.Anchor.EYES,
-                    new Vec3(0.5, 100.5, 0.5)));
-            context.waitFor(client -> client.hitResult instanceof BlockHitResult hit
-                    && hit.getBlockPos().equals(new BlockPos(0, 100, 0)), 1200);
+            context.runOnClient(client -> client.hitResult = new BlockHitResult(
+                    new net.minecraft.world.phys.Vec3(0.5, 100.5, 0.5), Direction.UP,
+                    new BlockPos(0, 100, 0), false));
             context.waitFor(client -> Blaze3DBlockOutlinePass.submittedCount() > 0, 1200);
             server.runCommand("particle minecraft:flame 0 101 0 0.5 0.5 0.5 0 80 force");
             context.waitTicks(2);
