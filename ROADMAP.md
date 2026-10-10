@@ -63,7 +63,8 @@ device, not write `options.txt` or force a backend.
 ### Community backend reference
 
 - **No validated shared-wgpu path yet:** see [ADR-010](docs/adr/010-community-backend-adoption.md) for the wgpu-mc and Vulcanite assessments, exact interop gap, and revalidation gates.
-- **Next:** a development-only, Vulkan-only handle-capture spike. Capture exact instance/device/queue-family/extensions/features at device creation and establish whether the pinned wgpu command buffer can join Minecraft's pending submission. Keep vanilla rendering active; halt if identity or wgpu command-buffer extraction cannot be proven. Details and acceptance criteria are in ADR-010.
+- **Direct Vulkan spike: stopped at source/API gate.** Minecraft exposes a raw-command-buffer enqueue seam internally, but pinned wgpu 26.0.1/wgpu-hal 26.0.6 do not expose the recorded Vulkan command buffer through a supported public API. Do not add handle-capture mixins until that command submission gap has a supported resolution. See [ADR-010](docs/adr/010-community-backend-adoption.md) and the verification log.
+- **Next:** identify an upstream-maintained command-buffer interoperability API or backend that fits the dependency/license constraints. If none exists, M2's WebGPU-on-Blaze3D rendering path remains blocked; do not use unsupported private-field extraction or a separate wgpu queue submission.
 
 Before coding a production world pass, close these integration proof gates:
 
