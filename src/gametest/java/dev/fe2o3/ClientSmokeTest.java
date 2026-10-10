@@ -29,7 +29,7 @@ public final class ClientSmokeTest implements FabricClientGameTest {
                 @Override
                 public void onDeviceReady(com.mojang.blaze3d.systems.GpuDevice device, long generation) {
                     failedInitializationReady.incrementAndGet();
-                    throw new IllegalStateException("Expected lifecycle initialization failure");
+                    throw new AssertionError("Expected lifecycle initialization failure");
                 }
 
                 @Override
