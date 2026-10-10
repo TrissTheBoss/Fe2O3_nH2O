@@ -27,8 +27,21 @@ without aborting Minecraft's renderer lifecycle. The live client smoke test regi
 verifies cleanup during detach, and verifies that the same resource rebuilds its
 buffer for a later generation. The test simulates detach/reattach on the active
 device; it does not replace the renderer device. No production GPU resources
-are registered yet; this remains lifecycle infrastructure. The existing wgpu mipmap device is independent and is not
-recreated or shared through this API.
+are registered yet; this remains lifecycle infrastructure. The block-selection outline experiment is submitted from Minecraft's extracted
+`BlockOutlineRenderState` through the public Blaze3D `SubmitNodeCollector`
+during the normal draw phase. The opt-in path duplicates the 26.2 outline
+submission choices (shape, translucency, line width, and high-contrast layer)
+and leaves the vanilla method in place as its default and debug-shape fallback.
+It owns no persistent GPU handle, so it does not register a device resource.
+The CI client smoke test enables it and verifies the LevelRenderer hook runs.
+That scene does not produce a `BlockOutlineRenderState`, so the test does not
+verify a non-empty outline submission. A live submission and visual equality
+with a vanilla baseline remain pending.
+
+The existing wgpu mipmap device is independent and is not recreated or shared
+through this API. In the chosen architecture, Blaze3D owns all Minecraft draw
+submissions and render targets; Rust/wgpu remains for compute-only work. No raw
+OpenGL/Vulkan handles or wgpu command buffers cross that boundary.
 
 The Java adapter gets owned packed ARGB pixels and calls Rust through JNI.
 Rust uploads one source buffer, dispatches each level with 8x8 workgroups, copies
@@ -73,7 +86,9 @@ adapter and mixin are strictly pinned to Minecraft 26.2. A future backport must
 provide that version's blend tables/semantics, integration and differential tests.
 The selected Minecraft backend supplies a preference only: independent wgpu
 buffers still do not share OpenGL/Vulkan handles, a surface, or synchronization
-with Blaze3D. If matching wgpu initialization fails, automatic adapter selection
-preserves the current compute fallback behavior. This architecture has
-readback/copy costs and is not the future world renderer.
+with Blaze3D. This is intentional: Blaze3D performs rendering while wgpu is used
+for independent compute workloads such as mipmap generation. If matching wgpu
+initialization fails, automatic adapter selection preserves the current compute
+fallback behavior. The mipmap path still has readback/copy costs and makes no
+world-rendering performance claim.
 

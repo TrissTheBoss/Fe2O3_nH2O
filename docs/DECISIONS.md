@@ -145,3 +145,58 @@ does not create a render pass or share the existing mipmap compute device.
 A real resource must register and pass backend, recreation, reload, resize and
 shutdown tests before an actual vanilla pass can be replaced. The callback path
 and mixin signatures require Minecraft 26.2 CI and live-client validation.
+
+
+## ADR-011 — Use Blaze3D for rendering and WebGPU for compute (2026-10-10, accepted)
+
+### Context
+
+The original integration goal was to submit wgpu command buffers into Minecraft's
+Blaze3D frame. ADR-010 records why the pinned wgpu 26.0.1 API and available
+community integrations do not yet establish a safe shared-device, shared-target,
+same-submission path. The project owner selected a different integration split:
+Minecraft/Blaze3D owns rendering; the independent Rust/wgpu device remains for
+compute. This removes raw backend interop from the first rendering milestone.
+
+### Decision
+
+Use Minecraft 26.2's extracted render state and Blaze3D submission APIs to
+replace one isolated vanilla draw submission at a time. Start with the
+block-selection outline. Add a version-pinned LevelRenderer Mixin that submits
+the existing Minecraft voxel shape through `SubmitNodeCollector`, preserving
+the vanilla shape, line-width, translucent ordering and high-contrast choices.
+Keep the original vanilla method as the default when the experiment property is
+disabled and as the debug-shape fallback:
+`-Dfe2o3.blaze3dOutline=true`.
+
+Rust/wgpu continues to run independent compute work (currently mipmap
+generation). It must not access Minecraft frame targets or submit graphics
+commands. Do not create a second presentation surface. Future pass replacement
+requires a separate parity review and vanilla fallback.
+
+This decision supersedes ADR-006/010 only where they made shared-WebGPU
+interop a prerequisite for beginning Blaze3D-rendered pass work. Their evidence
+that the current pinned wgpu path cannot safely share Minecraft's native frame
+remains valid and is deferred from M2 rendering.
+
+### Alternatives and consequences
+
+- **Wait for shared wgpu/Vulkan interop:** preserves WebGPU graphics but blocks
+  rendering progress on unsupported command-buffer and target synchronization.
+- **Use an extra rendering backend mod:** adds runtime dependencies and licensing
+  constraints excluded by the project brief.
+- **Chosen: Blaze3D submission plus independent wgpu compute:** uses Minecraft's
+  backend-neutral API for rendering and keeps the current compute stage. This
+  proves an integration boundary, not a performance win. The first pass is
+  opt-in until live hook, fallback, and visual comparison tests pass.
+
+### Validation gates
+
+1. Compile against the pinned Minecraft 26.2 mappings and ensure the Mixin
+   injects at the intended `LevelRenderer.submitBlockOutline` call.
+2. In the packaged client test, render a selected block and assert the opt-in
+   submission was reached; verify vanilla still runs with the property off.
+3. Capture equivalent vanilla and Fe2O3 images under OpenGL and Vulkan when
+   available; retain the raw images and diff.
+4. Verify resource reload, resize, device recreation and shutdown; measure the
+   pass only after parity has passed.

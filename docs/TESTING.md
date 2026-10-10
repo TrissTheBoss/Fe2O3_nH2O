@@ -19,9 +19,16 @@
   detach and failed-initialization state. The live client observes a nonzero
   generation from the RenderSystem.initRenderer hook, allocates a temporary
   4-byte `GpuBuffer` through the active `GpuDevice`, and verifies idempotent
-  registration, close on detach, and reallocation after a simulated lifecycle
-  reattach. It uses the active device object and does not exercise actual
-  renderer-device replacement, hardware, or a production rendering resource.
+  registration, same-device initialization idempotence, close on detach, and
+  reallocation after a simulated lifecycle reattach. It also injects initialization and release callback failures and
+  verifies that failed resources are removed without blocking healthy resources.
+  It uses the active device object and does not exercise actual renderer-device
+  replacement, hardware, or a production rendering resource.
+- The opt-in Blaze3D block-outline Mixin is enabled in the production-client
+  smoke run. The test supplies a deterministic hit result and asserts the
+  `LevelRenderer` hook executes. Current CI does not populate the extracted
+  `BlockOutlineRenderState`, so a non-empty custom submission, visual parity and
+  performance improvement are not verified.
 - A separate Fabric client test uses the packaged mod and real Mixin, checks a
   known output pixel and execution counter, confirms CUTOUT stays on vanilla,
   creates a block/entity/particle/sky scene, and asserts another GPU chain is
@@ -40,6 +47,7 @@ limitations; don't present a subjective observation as a measurement.
 | Area | Required cases | Current draw path | Verification |
 | --- | --- | --- | --- |
 | Terrain/full blocks | All directions, biome tint, AO, light levels 0–15, caves, chunk boundaries | Vanilla | Pending |
+| Block-selection outline | Voxel shape, line width, translucent target, high contrast, debug shapes | Blaze3D opt-in; vanilla default/debug fallback | Live hook smoke pending; image diff pending |
 | Non-full blocks | Stairs, slabs, fences, panes, doors, plants, redstone, custom baked models | Vanilla | Pending |
 | Entities/block entities | Skins, armor, items, glint, outlines, shadows, chests, signs, banners | Vanilla | Pending |
 | Particles | Opaque, translucent, lit, weather and item/block particles | Vanilla | Pending |
