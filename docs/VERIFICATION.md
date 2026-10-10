@@ -296,9 +296,11 @@ screenshots and completed resource reload.
 The test's diagnostic reported that the extracted `LevelRenderState` contained
 no `BlockOutlineRenderState`. Therefore the experiment submitted no outline in
 this CI scene: this run verifies Mixin loading and hook invocation, not an
-actual non-empty outline submission. A later code change makes an empty state
-fall through to vanilla instead of cancelling the original method; that exact
-head requires its own CI run.
+actual non-empty outline submission. The tested head makes an empty state fall through to vanilla instead of
+cancelling the original method. The exact head was verified in
+[Actions run 38087419299](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/38087419299),
+which passed four native jobs, Java differential tests, packaged-native checks,
+and the live Minecraft client smoke.
 
 No vanilla image comparison or performance measurement was made. The opt-in
 outline pass remains experimental and disabled by default; M2 is incomplete.
