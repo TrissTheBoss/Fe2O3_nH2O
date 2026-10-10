@@ -62,19 +62,20 @@ device, not write `options.txt` or force a backend.
 
 ### First Blaze3D pass
 
-- **Implemented in source; opt-in, awaiting CI:** the block-selection outline submission
-  can be replaced by Fe2O3 through Minecraft 26.2's `SubmitNodeCollector`
-  interface. It consumes Minecraft's extracted `BlockOutlineRenderState` and
-  submits the same voxel shape, colors, high-contrast outline and translucency
-  through Blaze3D. Set `-Dfe2o3.blaze3dOutline=true` to exercise it; otherwise
-  the original vanilla submission runs unchanged.
+- **Implemented in source; opt-in:** the block-selection outline submission can
+  be replaced through Minecraft 26.2's `SubmitNodeCollector`, using the extracted
+  `BlockOutlineRenderState` and Blaze3D. Empty state falls through to vanilla.
+  Set `-Dfe2o3.blaze3dOutline=true` to exercise it; otherwise vanilla remains
+  unchanged.
 - This first pass is Java-side Blaze3D rendering. Rust/wgpu remains an
   independent compute backend for mipmaps; it does not produce draw commands or
   share Minecraft's frame targets.
-- **Verification pending:** CI must load the production Mixin with the flag,
-  confirm a live selected block outline reaches the replacement, and retain
-  scene/reload smoke evidence. Pixel parity against a vanilla capture, renderer
-  recreation on hardware, and a measured performance improvement remain open.
+- **CI verified:** the production Mixin loads with the opt-in flag, and the live
+  test observes the LevelRenderer outline hook while preserving scene/reload
+  smoke evidence. This CI scene does not produce a `BlockOutlineRenderState`, so
+  it does not verify that the experimental pass submits an outline. A live
+  non-empty submission, pixel parity against vanilla, renderer recreation on
+  hardware, and a measured performance improvement remain open.
 
 ### Community backend reference
 
