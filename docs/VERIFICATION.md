@@ -264,3 +264,10 @@ verified, and no world pass is replaced. The candidate has additional
 constraints: the runtime implementation uses PolyForm Shield 1.0.0, and using
 Vulcanite as a required runtime dependency violates Fe2O3's current dependency
 limit. Keep it as a documented reference only.
+
+
+## Pinned wgpu command-buffer API check — 2026-10-10
+
+The lockfile pins `wgpu` and `wgpu-core` 26.0.1 and resolves `wgpu-hal` 26.0.6. Inspection of the exact-version wgpu 26.0.1 public API shows that its high-level `CommandBuffer` exposes no public HAL command-buffer extraction method; command buffers are submitted through `Queue::submit`. `Queue::as_hal` exposes the HAL queue, but does not insert commands into Minecraft's pending frame encoder. This confirms a concrete API mismatch for the current Fe2O3 submission route and Vulcanite's documented provider route.
+
+This does not prove a lower-level bridge is impossible. A custom Vulkan/wgpu-hal integration might record or import work against Minecraft's device, but it must demonstrate adapter/device identity, negotiated features/extensions, command-buffer lifetime, image layouts and synchronization, and insertion into Minecraft's same-frame submission. None of these conditions has been implemented or runtime-validated. Vulcanite's documented post-GUI final-color callback also remains unsuitable as the first world-only replacement target. M2 is blocked on selecting and proving a supported integration seam; the existing separate wgpu device is not that seam.
