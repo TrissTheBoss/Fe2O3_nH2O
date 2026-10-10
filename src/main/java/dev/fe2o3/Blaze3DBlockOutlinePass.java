@@ -46,8 +46,7 @@ public final class Blaze3DBlockOutlinePass {
             }
 
             int color = state.highContrast() ? -11010079 : ARGB.black(102);
-            float width = Minecraft.getInstance().gameRenderer.getGameRenderState()
-                    .windowRenderState.appropriateLineWidth;
+            float width = Minecraft.getInstance().getWindow().getAppropriateLineWidth();
             collector.submitShapeOutline(poseStack, state.shape(), RenderTypes.lines(), color, width,
                     state.isTranslucent());
             SUBMITTED.incrementAndGet();
