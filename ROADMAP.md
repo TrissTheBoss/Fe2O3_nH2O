@@ -62,7 +62,7 @@ device, not write `options.txt` or force a backend.
 
 ### Community backend reference
 
-- **Candidate review complete; adoption deferred:** see [ADR-010](docs/adr/010-community-backend-adoption.md) for the wgpu-mc/Electrum assessment and the evidence required before pinning it.
+- **No validated shared-wgpu path yet:** see [ADR-010](docs/adr/010-community-backend-adoption.md) for the wgpu-mc and Vulcanite assessments, exact interop gap, and revalidation gates.
 
 Assess the current wgpu-mc/Electrum rewrite as a community solution. Its stated
 goal is first full Blaze3D backend compatibility, followed by terrain replacement.
