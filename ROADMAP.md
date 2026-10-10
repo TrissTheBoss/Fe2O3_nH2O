@@ -57,12 +57,12 @@ device, not write `options.txt` or force a backend.
   phases and thread. Do not assume OpenGL-specific state or raw Vulkan handles.
 - Test clean first launch, OpenGL, Vulkan when available, changed preference,
   failed Vulkan startup recovery, window resize, resource reload and shutdown.
-- Verify pixels and frame synchronization before replacing one actual pass.
-  Roll back to that vanilla pass on unsupported capabilities or failure.
+- For each pass, verify pixel parity and fallback before enabling it by default.
+  Keep unsupported paths on the original vanilla submission.
 
 ### First Blaze3D pass
 
-- **Implemented; opt-in and awaiting CI:** the block-selection outline submission
+- **Implemented in source; opt-in, awaiting CI:** the block-selection outline submission
   can be replaced by Fe2O3 through Minecraft 26.2's `SubmitNodeCollector`
   interface. It consumes Minecraft's extracted `BlockOutlineRenderState` and
   submits the same voxel shape, colors, high-contrast outline and translucency

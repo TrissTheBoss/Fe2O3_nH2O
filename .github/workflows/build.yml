@@ -78,6 +78,10 @@ jobs:
           sudo apt-get install -y mesa-vulkan-drivers xvfb libgl1-mesa-dri
           mkdir -p "$XDG_RUNTIME_DIR"
           chmod 700 "$XDG_RUNTIME_DIR"
+      - name: Enforce M2 release artifact gate
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          grep -Fxq '## M2 — Blaze3D rendering integration and first world pass (implemented; CI verified)' ROADMAP.md
       - name: Build Fabric JAR and run vanilla differential tests
         run: gradle --no-daemon build
       - name: Verify packaged native payloads and checksums

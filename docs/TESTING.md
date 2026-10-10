@@ -45,7 +45,8 @@ limitations; don't present a subjective observation as a measurement.
 
 | Area | Required cases | Current draw path | Verification |
 | --- | --- | --- | --- |
-| Terrain/full blocks | All directions, biome tint, AO, light levels 0–15, caves, chunk boundaries | Vanilla | Pending |\n| Block-selection outline | Voxel shape, line width, translucent target, high contrast, debug shapes | Blaze3D opt-in; vanilla default/debug fallback | Live hook smoke pending; image diff pending |
+| Terrain/full blocks | All directions, biome tint, AO, light levels 0–15, caves, chunk boundaries | Vanilla | Pending |
+| Block-selection outline | Voxel shape, line width, translucent target, high contrast, debug shapes | Blaze3D opt-in; vanilla default/debug fallback | Live hook smoke pending; image diff pending |
 | Non-full blocks | Stairs, slabs, fences, panes, doors, plants, redstone, custom baked models | Vanilla | Pending |
 | Entities/block entities | Skins, armor, items, glint, outlines, shadows, chests, signs, banners | Vanilla | Pending |
 | Particles | Opaque, translucent, lit, weather and item/block particles | Vanilla | Pending |
