@@ -244,3 +244,23 @@ wgpu-mc/Electrum remains a reference, not a pinned dependency, while its
 README describes a compatibility rewrite and no releases are published. The
 repository's top-level license is identified as MPL-2.0; bundled/transitive
 license review remains open. M2 remains incomplete.
+
+## Blaze3D/Vulkan-to-wgpu interoperability review — 2026-10-10
+
+A source/API review is recorded in ADR-010. Fe2O3 pins wgpu 26.0.1 (lockfile
+wgpu-hal 26.0.6). Vulcanite's public 26.2 provider integration exposes borrowed
+Vulkan handles and documents a final-composite callback plus execution through
+Minecraft's pending graphics encoder. Its documented scope is post-GUI final
+color, not a world-only target; its 1.0 API reports several temporal inputs as
+unsupported. Fe2O3's current wgpu path instead creates an independent device and
+submits through its own wgpu queue. wgpu's unsafe HAL adapter/device contract
+does not establish that these existing objects can wrap or record against the
+Minecraft-owned device and submission timeline.
+
+This was a static source/API review only. We did not build a Vulcanite provider,
+wrap the live Vulkan device in wgpu, execute WebGPU work in Minecraft's frame,
+or run Vulkan validation layers. Therefore no shared-device/frame path is
+verified, and no world pass is replaced. The candidate has additional
+constraints: the runtime implementation uses PolyForm Shield 1.0.0, and using
+Vulcanite as a required runtime dependency violates Fe2O3's current dependency
+limit. Keep it as a documented reference only.
