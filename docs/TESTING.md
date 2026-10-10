@@ -25,9 +25,10 @@
   It uses the active device object and does not exercise actual renderer-device
   replacement, hardware, or a production rendering resource.
 - The opt-in Blaze3D block-outline Mixin is enabled in the production-client
-  smoke run. The test aims the camera at a world block, waits for a live
-  `BlockHitResult`, and asserts the custom submission counter advances. This
-  proves the replacement hook ran, not pixel parity or a performance improvement.
+  smoke run. The test supplies a deterministic hit result and asserts the
+  `LevelRenderer` hook executes. Current CI does not populate the extracted
+  `BlockOutlineRenderState`, so a non-empty custom submission, visual parity and
+  performance improvement are not verified.
 - A separate Fabric client test uses the packaged mod and real Mixin, checks a
   known output pixel and execution counter, confirms CUTOUT stays on vanilla,
   creates a block/entity/particle/sky scene, and asserts another GPU chain is
