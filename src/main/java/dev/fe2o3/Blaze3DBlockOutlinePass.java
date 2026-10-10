@@ -27,10 +27,9 @@ public final class Blaze3DBlockOutlinePass {
      */
     public static boolean trySubmit(PoseStack poseStack, SubmitNodeCollector collector,
                                     net.minecraft.client.renderer.state.level.LevelRenderState levelState) {
+        if (!Boolean.getBoolean("fe2o3.blaze3dOutline")) return false;
         ATTEMPTED.incrementAndGet();
-        if (!Boolean.getBoolean("fe2o3.blaze3dOutline")
-                || SharedConstants.DEBUG_SHAPES
-                || Blaze3DDeviceLifecycle.generation() == 0) {
+        if (SharedConstants.DEBUG_SHAPES || Blaze3DDeviceLifecycle.generation() == 0) {
             return false;
         }
 
