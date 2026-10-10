@@ -280,3 +280,25 @@ The direct bridge assessment was extended to the exact upstream source tags. Min
 The command-buffer check is decisive for the current wgpu 26.0.1 route. Its public `CommandBuffer` exposes no HAL extraction method. The exact wgpu-hal v26.0.6 Vulkan `CommandBuffer` stores its `VkCommandBuffer` in a private field and offers no public raw-handle accessor; the dynamic `DynCommandBuffer` interface is only a marker. Minecraft's encoder can accept a raw Vulkan command buffer, but Fe2O3 cannot obtain the one recorded by wgpu through the pinned public API. Submitting through wgpu's queue would remain a separate submission, violating the required same-frame queue contract.
 
 **Spike outcome: stop before runtime code.** Raw-handle instrumentation alone cannot bridge WebGPU commands into the vanilla frame, and any unsafe field-layout/reflection hack would be unsupported and brittle. Reopen this path only if wgpu provides a supported command-buffer export/interop API or an upstream-maintained integration proves one. Until then preserve the existing renderer and do not add a fake Vulkan bridge. This is source/API validation; no live client interop experiment was run.
+
+
+## Opt-in Blaze3D outline hook smoke — 2026-10-10
+
+PR #15 code head `21618031c911ea75ba00925b4dc9c0b8d8618cc9` passed all four
+native jobs and the `verify` job in
+[Actions run 38086950845](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/38086950845).
+The run compiled the Fabric client mod, passed the JVM differential tests and
+packaged-native checks, then launched the Minecraft client with the outline
+experiment enabled. The client test observed the LevelRenderer outline hook,
+completed the full-block/partial-block/entity/particle/sky scene, captured
+screenshots and completed resource reload.
+
+The test's diagnostic reported that the extracted `LevelRenderState` contained
+no `BlockOutlineRenderState`. Therefore the experiment submitted no outline in
+this CI scene: this run verifies Mixin loading and hook invocation, not an
+actual non-empty outline submission. A later code change makes an empty state
+fall through to vanilla instead of cancelling the original method; that exact
+head requires its own CI run.
+
+No vanilla image comparison or performance measurement was made. The opt-in
+outline pass remains experimental and disabled by default; M2 is incomplete.
