@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * It consumes Minecraft's extracted state and leaves geometry/drawing to Blaze3D.
  */
 public final class Blaze3DBlockOutlinePass {
+    private static final AtomicLong ATTEMPTED = new AtomicLong();
     private static final AtomicLong SUBMITTED = new AtomicLong();
 
     private Blaze3DBlockOutlinePass() { }
@@ -26,6 +27,7 @@ public final class Blaze3DBlockOutlinePass {
      */
     public static boolean trySubmit(PoseStack poseStack, SubmitNodeCollector collector,
                                     net.minecraft.client.renderer.state.level.LevelRenderState levelState) {
+        ATTEMPTED.incrementAndGet();
         if (!Boolean.getBoolean("fe2o3.blaze3dOutline")
                 || SharedConstants.DEBUG_SHAPES
                 || Blaze3DDeviceLifecycle.generation() == 0) {
@@ -54,6 +56,11 @@ public final class Blaze3DBlockOutlinePass {
         } finally {
             poseStack.popPose();
         }
+    }
+
+    /** Number of LevelRenderer outline-hook invocations, including vanilla fallbacks. */
+    public static long attemptedCount() {
+        return ATTEMPTED.get();
     }
 
     /** Number of non-empty block outlines submitted through this experiment. */
