@@ -63,6 +63,7 @@ device, not write `options.txt` or force a backend.
 ### Community backend reference
 
 - **No validated shared-wgpu path yet:** see [ADR-010](docs/adr/010-community-backend-adoption.md) for the wgpu-mc and Vulcanite assessments, exact interop gap, and revalidation gates.
+- **Next:** a development-only, Vulkan-only handle-capture spike. Capture exact instance/device/queue-family/extensions/features at device creation and establish whether the pinned wgpu command buffer can join Minecraft's pending submission. Keep vanilla rendering active; halt if identity or wgpu command-buffer extraction cannot be proven. Details and acceptance criteria are in ADR-010.
 
 Before coding a production world pass, close these integration proof gates:
 
