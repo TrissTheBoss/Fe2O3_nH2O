@@ -165,7 +165,8 @@ public final class ClientSmokeTest implements FabricClientGameTest {
             server.runCommand("fill -8 99 -8 8 99 8 minecraft:stone");
             server.runCommand("setblock -2 100 0 minecraft:stone");
             server.runCommand("setblock -1 100 0 minecraft:oak_stairs");
-            server.runCommand("setblock 0 100 0 minecraft:oak_slab");
+            server.runCommand("setblock -3 100 0 minecraft:oak_slab");
+            server.runCommand("setblock 0 100 0 minecraft:stone");
             server.runCommand("setblock 1 100 0 minecraft:glass");
             server.runCommand("setblock 2 100 0 minecraft:oak_leaves");
             server.runCommand("summon minecraft:pig 3 100 0 {NoAI:1b}");
