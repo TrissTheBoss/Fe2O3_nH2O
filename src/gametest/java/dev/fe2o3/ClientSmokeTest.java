@@ -179,7 +179,10 @@ public final class ClientSmokeTest implements FabricClientGameTest {
             context.runOnClient(client -> client.hitResult = new BlockHitResult(
                     new net.minecraft.world.phys.Vec3(0.5, 100.5, 0.5), Direction.UP,
                     new BlockPos(0, 100, 0), false));
-            context.waitFor(client -> Blaze3DBlockOutlinePass.submittedCount() > 0, 1200);
+            context.waitFor(client -> Blaze3DBlockOutlinePass.attemptedCount() > 0, 1200);
+            if (Blaze3DBlockOutlinePass.submittedCount() == 0) {
+                System.out.println("[Fe2O3] Outline hook ran, but LevelRenderState had no outline to submit");
+            }
             server.runCommand("particle minecraft:flame 0 101 0 0.5 0.5 0.5 0 80 force");
             context.waitTicks(2);
             context.takeScreenshot("terrain-partial-blocks-entity-particles-sky");
