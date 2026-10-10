@@ -19,8 +19,8 @@
   detach and failed-initialization state. The live client observes a nonzero
   generation from the RenderSystem.initRenderer hook, allocates a temporary
   4-byte `GpuBuffer` through the active `GpuDevice`, and verifies idempotent
-  registration, close on detach, and reallocation after a simulated lifecycle
-  reattach. It also injects initialization and release callback failures and
+  registration, same-device initialization idempotence, close on detach, and
+  reallocation after a simulated lifecycle reattach. It also injects initialization and release callback failures and
   verifies that failed resources are removed without blocking healthy resources.
   It uses the active device object and does not exercise actual renderer-device
   replacement, hardware, or a production rendering resource.
