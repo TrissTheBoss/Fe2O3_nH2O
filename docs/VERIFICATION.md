@@ -207,3 +207,21 @@ reinitialized on simulated reattach, and remained usable.
 These are callback fault-containment checks on the active CI device. They do not
 test actual renderer-device replacement, hardware device loss, a production
 rendering resource, or a replaced vanilla world pass. M2 remains in progress.
+
+
+## Assertion failure containment in Blaze3D callbacks — 2026-10-10
+
+PR #14 head `9efa60dbc5c4de9b06363f3a51dfdaba7441d614` passed the full
+four-platform and live client workflow in
+[Actions run 38079582114](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/38079582114).
+The client test raised an intentional `AssertionError` from resource
+initialization; the lifecycle logged and removed that resource, invoked its
+cleanup callback, then continued attaching healthy resources. A separate
+intentional runtime exception during resource release also did not block cleanup
+or reinitialization of the healthy GPU-buffer resource.
+
+This verifies callback containment for `AssertionError`, runtime exceptions
+and linkage failures. Fatal VM and thread errors are not swallowed. The test
+still simulates reinitialization on the same device and does not verify actual
+device replacement, a production render resource, or a replaced vanilla pass.
+M2 remains in progress.
