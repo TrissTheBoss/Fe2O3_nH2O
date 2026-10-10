@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.minecraft.client.renderer.texture.MipmapGenerator;
 import net.minecraft.client.renderer.texture.MipmapStrategy;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Blocks;
@@ -173,6 +174,8 @@ public final class ClientSmokeTest implements FabricClientGameTest {
             context.waitFor(client -> client.level != null
                     && client.level.getBlockState(new BlockPos(-1, 100, 0)).is(Blocks.OAK_STAIRS), 1200);
             world.getConnection().waitForChunksRender();
+            context.waitFor(client -> client.hitResult instanceof BlockHitResult, 1200);
+            context.waitFor(client -> Blaze3DBlockOutlinePass.submittedCount() > 0, 1200);
             server.runCommand("particle minecraft:flame 0 101 0 0.5 0.5 0.5 0 80 force");
             context.waitTicks(2);
             context.takeScreenshot("terrain-partial-blocks-entity-particles-sky");
@@ -185,7 +188,7 @@ public final class ClientSmokeTest implements FabricClientGameTest {
             context.takeScreenshot("after-resource-reload");
         }
         try {
-            Files.writeString(Path.of("FE2O3_CLIENT_TEST_PASSED"), "mixin, scene and resource reload passed\n");
+            Files.writeString(Path.of("FE2O3_CLIENT_TEST_PASSED"), "mixin, Blaze3D block-outline submission, scene and resource reload passed\n");
         } catch (java.io.IOException e) {
             throw new AssertionError("Unable to write client test completion marker", e);
         }

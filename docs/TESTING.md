@@ -24,6 +24,10 @@
   verifies that failed resources are removed without blocking healthy resources.
   It uses the active device object and does not exercise actual renderer-device
   replacement, hardware, or a production rendering resource.
+- The opt-in Blaze3D block-outline Mixin is enabled in the production-client
+  smoke run. The test aims the camera at a world block, waits for a live
+  `BlockHitResult`, and asserts the custom submission counter advances. This
+  proves the replacement hook ran, not pixel parity or a performance improvement.
 - A separate Fabric client test uses the packaged mod and real Mixin, checks a
   known output pixel and execution counter, confirms CUTOUT stays on vanilla,
   creates a block/entity/particle/sky scene, and asserts another GPU chain is
@@ -41,7 +45,7 @@ limitations; don't present a subjective observation as a measurement.
 
 | Area | Required cases | Current draw path | Verification |
 | --- | --- | --- | --- |
-| Terrain/full blocks | All directions, biome tint, AO, light levels 0–15, caves, chunk boundaries | Vanilla | Pending |
+| Terrain/full blocks | All directions, biome tint, AO, light levels 0–15, caves, chunk boundaries | Vanilla | Pending |\n| Block-selection outline | Voxel shape, line width, translucent target, high contrast, debug shapes | Blaze3D opt-in; vanilla default/debug fallback | Live hook smoke pending; image diff pending |
 | Non-full blocks | Stairs, slabs, fences, panes, doors, plants, redstone, custom baked models | Vanilla | Pending |
 | Entities/block entities | Skins, armor, items, glint, outlines, shadows, chests, signs, banners | Vanilla | Pending |
 | Particles | Opaque, translucent, lit, weather and item/block particles | Vanilla | Pending |

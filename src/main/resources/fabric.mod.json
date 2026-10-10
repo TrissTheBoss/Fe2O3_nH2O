@@ -3,7 +3,7 @@
   "id": "fe2o3_nh2o",
   "version": "${version}",
   "name": "Fe2O3_nH2O",
-  "description": "Experimental Rust/WebGPU texture mipmap rendering stage. World drawing remains vanilla.",
+  "description": "Experimental Rust/WebGPU mipmap compute with an opt-in Blaze3D block-outline submission pass.",
   "icon": "assets/fe2o3_nh2o/icon.png",
   "authors": ["TrissTheBoss"],
   "contact": {"sources": "https://github.com/TrissTheBoss/Fe2O3_nH2O"},

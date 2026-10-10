@@ -33,7 +33,7 @@ tasks.register('runProductionClientGameTest', net.fabricmc.loom.task.prod.Client
     // Production runs only load explicitly supplied mod JARs.
     mods.from(tasks.named('clientGameTestJar'))
     runDir = layout.buildDirectory.dir('run/clientGameTest')
-    jvmArgs.addAll('-Dfabric.client.gametest', '-Dfe2o3.minPixels=4',
+    jvmArgs.addAll('-Dfabric.client.gametest', '-Dfe2o3.minPixels=4', '-Dfe2o3.blaze3dOutline=true',
         '-Dfabric.client.gametest.disableNetworkSynchronizer=true')
     useXVFB = true
 }

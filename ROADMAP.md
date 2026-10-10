@@ -24,7 +24,7 @@ linked test run; **planned** means it does not exist. No percentage estimates.
 - Add cutout/coverage handling only if it can remain exactly compatible and faster.
 - Add verified additional native targets, dependency audit and release provenance.
 
-## M2 — Blaze3D backend integration and first world pass (in progress)
+## M2 — Blaze3D rendering integration and first world pass (in progress)
 
 ### Renderer backend lifecycle
 
@@ -60,19 +60,36 @@ device, not write `options.txt` or force a backend.
 - Verify pixels and frame synchronization before replacing one actual pass.
   Roll back to that vanilla pass on unsupported capabilities or failure.
 
+### First Blaze3D pass
+
+- **Implemented; opt-in and awaiting CI:** the block-selection outline submission
+  can be replaced by Fe2O3 through Minecraft 26.2's `SubmitNodeCollector`
+  interface. It consumes Minecraft's extracted `BlockOutlineRenderState` and
+  submits the same voxel shape, colors, high-contrast outline and translucency
+  through Blaze3D. Set `-Dfe2o3.blaze3dOutline=true` to exercise it; otherwise
+  the original vanilla submission runs unchanged.
+- This first pass is Java-side Blaze3D rendering. Rust/wgpu remains an
+  independent compute backend for mipmaps; it does not produce draw commands or
+  share Minecraft's frame targets.
+- **Verification pending:** CI must load the production Mixin with the flag,
+  confirm a live selected block outline reaches the replacement, and retain
+  scene/reload smoke evidence. Pixel parity against a vanilla capture, renderer
+  recreation on hardware, and a measured performance improvement remain open.
+
 ### Community backend reference
 
 - **No validated shared-wgpu path yet:** see [ADR-010](docs/adr/010-community-backend-adoption.md) for the wgpu-mc and Vulcanite assessments, exact interop gap, and revalidation gates.
 - **Direct Vulkan spike: stopped at source/API gate.** Minecraft exposes a raw-command-buffer enqueue seam internally, but pinned wgpu 26.0.1/wgpu-hal 26.0.6 do not expose the recorded Vulkan command buffer through a supported public API. Do not add handle-capture mixins until that command submission gap has a supported resolution. See [ADR-010](docs/adr/010-community-backend-adoption.md) and the verification log.
-- **Next:** identify an upstream-maintained command-buffer interoperability API or backend that fits the dependency/license constraints. If none exists, M2's WebGPU-on-Blaze3D rendering path remains blocked; do not use unsupported private-field extraction or a separate wgpu queue submission.
+- The pinned wgpu/Minecraft shared-device path remains unproven and is not used
+  by this M2 rendering approach. Keep backend-handle and command-buffer
+  interop work out of the rendering path; wgpu remains compute-only.
 
-Before coding a production world pass, close these integration proof gates:
-
-- Identify an actively maintained 26.2-compatible community seam that can be used within the dependency and license constraints, or document why none qualifies.
-- Prove WebGPU work uses the active Blaze3D device and can be inserted into Minecraft's own frame submission; independent wgpu device creation or queue submission does not pass.
-- Verify same-frame target access, format/sample count, image-layout transitions, synchronization, resize/reload/device-loss cleanup, and fallback to the unchanged vanilla pass.
-- Implement a minimal offscreen or pass-equivalent experiment and compare captured output against vanilla under Vulkan validation; only then select the first world pass.
-- Keep the current separate wgpu queue path for non-rendering compute only until these gates are met. No M2 renderer-completion claim or test JAR before a replaced pass and its rollback/parity checks pass.
+The first pass must keep vanilla fallback explicit, use extracted render state,
+and execute in Minecraft's draw phase through Blaze3D. Passing compilation or a
+live submission smoke test alone does not prove pixel parity or a performance
+benefit. Continue by validating the selection-outline images on supported
+backends, then choose the next isolated pass only after its render state and
+fallback can be preserved.
 
 Assess the current wgpu-mc/Electrum rewrite as a community solution. Its stated
 goal is first full Blaze3D backend compatibility, followed by terrain replacement.
@@ -84,8 +101,8 @@ review. It is a reference, not currently a safe runtime dependency.
   resource reload lifecycle before connecting a second GPU backend.
 - Avoid a separate raw-window surface unless interoperability with Minecraft's
   frame is proven.
-- Replace one actual vanilla world pass with a tested rollback path; a diagnostic
-  triangle or extra overlay does not count as pass replacement.
+- Extend to another isolated vanilla pass only after the first pass has verified
+  pixel parity, fallback, lifecycle behavior and a measured benefit.
 
 ## M3 — world renderer and vanilla parity (planned)
 
