@@ -62,6 +62,18 @@ device, not write `options.txt` or force a backend.
 
 ### Community backend reference
 
+- **No validated shared-wgpu path yet:** see [ADR-010](docs/adr/010-community-backend-adoption.md) for the wgpu-mc and Vulcanite assessments, exact interop gap, and revalidation gates.
+- **Direct Vulkan spike: stopped at source/API gate.** Minecraft exposes a raw-command-buffer enqueue seam internally, but pinned wgpu 26.0.1/wgpu-hal 26.0.6 do not expose the recorded Vulkan command buffer through a supported public API. Do not add handle-capture mixins until that command submission gap has a supported resolution. See [ADR-010](docs/adr/010-community-backend-adoption.md) and the verification log.
+- **Next:** identify an upstream-maintained command-buffer interoperability API or backend that fits the dependency/license constraints. If none exists, M2's WebGPU-on-Blaze3D rendering path remains blocked; do not use unsupported private-field extraction or a separate wgpu queue submission.
+
+Before coding a production world pass, close these integration proof gates:
+
+- Identify an actively maintained 26.2-compatible community seam that can be used within the dependency and license constraints, or document why none qualifies.
+- Prove WebGPU work uses the active Blaze3D device and can be inserted into Minecraft's own frame submission; independent wgpu device creation or queue submission does not pass.
+- Verify same-frame target access, format/sample count, image-layout transitions, synchronization, resize/reload/device-loss cleanup, and fallback to the unchanged vanilla pass.
+- Implement a minimal offscreen or pass-equivalent experiment and compare captured output against vanilla under Vulkan validation; only then select the first world pass.
+- Keep the current separate wgpu queue path for non-rendering compute only until these gates are met. No M2 renderer-completion claim or test JAR before a replaced pass and its rollback/parity checks pass.
+
 Assess the current wgpu-mc/Electrum rewrite as a community solution. Its stated
 goal is first full Blaze3D backend compatibility, followed by terrain replacement.
 Pin and adopt it only after stable 26.2 compatibility, API maturity, distribution

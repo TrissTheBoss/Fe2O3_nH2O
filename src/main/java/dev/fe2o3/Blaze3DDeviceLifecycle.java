@@ -81,7 +81,7 @@ public final class Blaze3DDeviceLifecycle {
     private static void notifyReady(Resource resource, GpuDevice device, long generation) {
         try {
             resource.onDeviceReady(device, generation);
-        } catch (RuntimeException | LinkageError error) {
+        } catch (RuntimeException | LinkageError | AssertionError error) {
             notifyLost(resource, device);
             RESOURCES.remove(resource);
             LOGGER.warn("Removing a Fe2O3 Blaze3D resource after initialization failed", error);
@@ -91,7 +91,7 @@ public final class Blaze3DDeviceLifecycle {
     private static void notifyLost(Resource resource, GpuDevice device) {
         try {
             resource.onDeviceLost(device);
-        } catch (RuntimeException | LinkageError error) {
+        } catch (RuntimeException | LinkageError | AssertionError error) {
             RESOURCES.remove(resource);
             LOGGER.warn("Removing a Fe2O3 Blaze3D resource after release failed", error);
         }

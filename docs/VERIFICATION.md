@@ -191,3 +191,92 @@ The lifecycle smoke behavior is as described above: it uses the active device
 and simulates detach/reattach with the same device object. The successful run
 does not add evidence for real device replacement or the outstanding M2 world
 pass. The PR remains open and M2 remains in progress.
+
+
+## Blaze3D callback failure isolation — 2026-10-09
+
+PR #14 code head `d3d9272ec399256e98a341159fa8a0bd0dc5783e` passed all four
+native jobs and the full verify job in
+[Actions run 37988785889](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/37988785889).
+The live Minecraft smoke test deliberately caused one resource's initialization
+callback to throw and verified its release callback ran. It also caused a
+resource's release callback to throw during simulated device detach while a
+healthy buffer resource was registered; the healthy resource still closed,
+reinitialized on simulated reattach, and remained usable.
+
+These are callback fault-containment checks on the active CI device. They do not
+test actual renderer-device replacement, hardware device loss, a production
+rendering resource, or a replaced vanilla world pass. M2 remains in progress.
+
+
+## Assertion failure containment in Blaze3D callbacks — 2026-10-10
+
+PR #14 head `9efa60dbc5c4de9b06363f3a51dfdaba7441d614` passed the full
+four-platform and live client workflow in
+[Actions run 38079582114](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/38079582114).
+The client test raised an intentional `AssertionError` from resource
+initialization; the lifecycle logged and removed that resource, invoked its
+cleanup callback, then continued attaching healthy resources. A separate
+intentional runtime exception during resource release also did not block cleanup
+or reinitialization of the healthy GPU-buffer resource.
+
+This verifies callback containment for `AssertionError`, runtime exceptions
+and linkage failures. Fatal VM and thread errors are not swallowed. The test
+still simulates reinitialization on the same device and does not verify actual
+device replacement, a production render resource, or a replaced vanilla pass.
+M2 remains in progress.
+
+## Same-device lifecycle idempotence and backend candidate review — 2026-10-10
+
+PR #14 head `22905a6cf0d29728cbbf99b02884b92b56899c8e` passed all jobs in
+[Actions run 38081353775](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/38081353775):
+four native matrix targets, mandatory software-Vulkan differential tests,
+packaged JAR/native checksum validation, and the live Minecraft client smoke
+test. The smoke test verified that invoking both renderer initialization
+callbacks again with the same active Blaze3D device preserves the generation,
+live GPU buffer, and callback counts. It also retained the initialization/release
+failure-isolation and simulated detach/reattach checks.
+
+This run validates same-device idempotence. It does not recreate Minecraft's
+actual renderer device, use a production rendering resource, or replace a
+vanilla draw pass. The backend adoption review is recorded in ADR-010:
+wgpu-mc/Electrum remains a reference, not a pinned dependency, while its
+README describes a compatibility rewrite and no releases are published. The
+repository's top-level license is identified as MPL-2.0; bundled/transitive
+license review remains open. M2 remains incomplete.
+
+## Blaze3D/Vulkan-to-wgpu interoperability review — 2026-10-10
+
+A source/API review is recorded in ADR-010. Fe2O3 pins wgpu 26.0.1 (lockfile
+wgpu-hal 26.0.6). Vulcanite's public 26.2 provider integration exposes borrowed
+Vulkan handles and documents a final-composite callback plus execution through
+Minecraft's pending graphics encoder. Its documented scope is post-GUI final
+color, not a world-only target; its 1.0 API reports several temporal inputs as
+unsupported. Fe2O3's current wgpu path instead creates an independent device and
+submits through its own wgpu queue. wgpu's unsafe HAL adapter/device contract
+does not establish that these existing objects can wrap or record against the
+Minecraft-owned device and submission timeline.
+
+This was a static source/API review only. We did not build a Vulcanite provider,
+wrap the live Vulkan device in wgpu, execute WebGPU work in Minecraft's frame,
+or run Vulkan validation layers. Therefore no shared-device/frame path is
+verified, and no world pass is replaced. The candidate has additional
+constraints: the runtime implementation uses PolyForm Shield 1.0.0, and using
+Vulcanite as a required runtime dependency violates Fe2O3's current dependency
+limit. Keep it as a documented reference only.
+
+
+## Pinned wgpu command-buffer API check — 2026-10-10
+
+The lockfile pins `wgpu` and `wgpu-core` 26.0.1 and resolves `wgpu-hal` 26.0.6. Inspection of the exact-version wgpu 26.0.1 public API shows that its high-level `CommandBuffer` exposes no public HAL command-buffer extraction method; command buffers are submitted through `Queue::submit`. `Queue::as_hal` exposes the HAL queue, but does not insert commands into Minecraft's pending frame encoder. This confirms a concrete API mismatch for the current Fe2O3 submission route and Vulcanite's documented provider route.
+
+This does not prove a lower-level bridge is impossible. A custom Vulkan/wgpu-hal integration might record or import work against Minecraft's device, but it must demonstrate adapter/device identity, negotiated features/extensions, command-buffer lifetime, image layouts and synchronization, and insertion into Minecraft's same-frame submission. None of these conditions has been implemented or runtime-validated. Vulcanite's documented post-GUI final-color callback also remains unsuitable as the first world-only replacement target. M2 is blocked on selecting and proving a supported integration seam; the existing separate wgpu device is not that seam.
+
+
+## Direct Vulkan bridge source check — 2026-10-10
+
+The direct bridge assessment was extended to the exact upstream source tags. Minecraft's decompiled 26.2 Vulkan implementation has a private `GpuDevice.backend`; its Vulkan backend object exposes instance/device/graphics-queue accessors and its encoder can enqueue a raw Vulkan command buffer. But the vanilla device wrapper closes the selected physical-device helper after construction, and the backend's device-creation path builds its required Vulkan feature chain in local/private code. This means handle capture would require version-specific mixins at device creation and ownership-aware accessors; it is not a supported public Fabric rendering API.
+
+The command-buffer check is decisive for the current wgpu 26.0.1 route. Its public `CommandBuffer` exposes no HAL extraction method. The exact wgpu-hal v26.0.6 Vulkan `CommandBuffer` stores its `VkCommandBuffer` in a private field and offers no public raw-handle accessor; the dynamic `DynCommandBuffer` interface is only a marker. Minecraft's encoder can accept a raw Vulkan command buffer, but Fe2O3 cannot obtain the one recorded by wgpu through the pinned public API. Submitting through wgpu's queue would remain a separate submission, violating the required same-frame queue contract.
+
+**Spike outcome: stop before runtime code.** Raw-handle instrumentation alone cannot bridge WebGPU commands into the vanilla frame, and any unsafe field-layout/reflection hack would be unsupported and brittle. Reopen this path only if wgpu provides a supported command-buffer export/interop API or an upstream-maintained integration proves one. Until then preserve the existing renderer and do not add a fake Vulkan bridge. This is source/API validation; no live client interop experiment was run.
