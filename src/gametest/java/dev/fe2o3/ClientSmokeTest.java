@@ -98,6 +98,15 @@ public final class ClientSmokeTest implements FabricClientGameTest {
                 throw new AssertionError("Resource did not create a live Blaze3D buffer");
             }
 
+            long activeGeneration = Blaze3DDeviceLifecycle.generation();
+            var activeDevice = com.mojang.blaze3d.systems.RenderSystem.getDevice();
+            Blaze3DDeviceLifecycle.rendererWillInitialize(activeDevice);
+            Blaze3DDeviceLifecycle.rendererInitialized(activeDevice);
+            if (Blaze3DDeviceLifecycle.generation() != activeGeneration || ready.get() != 1
+                    || lost.get() != 0 || ownedBuffer.get() != firstBuffer || firstBuffer.isClosed()) {
+                throw new AssertionError("Reinitializing the active Blaze3D device must preserve its resources");
+            }
+
             Blaze3DDeviceLifecycle.rendererClosing();
             if (failedReleaseLost.get() != 1 || lost.get() != 1 || !firstBuffer.isClosed()) {
                 throw new AssertionError("A failing release callback prevented later resources from detaching");
