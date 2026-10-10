@@ -225,3 +225,22 @@ and linkage failures. Fatal VM and thread errors are not swallowed. The test
 still simulates reinitialization on the same device and does not verify actual
 device replacement, a production render resource, or a replaced vanilla pass.
 M2 remains in progress.
+
+## Same-device lifecycle idempotence and backend candidate review — 2026-10-10
+
+PR #14 head `22905a6cf0d29728cbbf99b02884b92b56899c8e` passed all jobs in
+[Actions run 38081353775](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/38081353775):
+four native matrix targets, mandatory software-Vulkan differential tests,
+packaged JAR/native checksum validation, and the live Minecraft client smoke
+test. The smoke test verified that invoking both renderer initialization
+callbacks again with the same active Blaze3D device preserves the generation,
+live GPU buffer, and callback counts. It also retained the initialization/release
+failure-isolation and simulated detach/reattach checks.
+
+This run validates same-device idempotence. It does not recreate Minecraft's
+actual renderer device, use a production rendering resource, or replace a
+vanilla draw pass. The backend adoption review is recorded in ADR-010:
+wgpu-mc/Electrum remains a reference, not a pinned dependency, while its
+README describes a compatibility rewrite and no releases are published. The
+repository's top-level license is identified as MPL-2.0; bundled/transitive
+license review remains open. M2 remains incomplete.
