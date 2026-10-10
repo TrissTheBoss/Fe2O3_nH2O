@@ -35,7 +35,7 @@ public final class Blaze3DBlockOutlinePass {
         }
 
         BlockOutlineRenderState state = levelState.blockOutlineRenderState;
-        if (state == null) return true;
+        if (state == null) return false;
 
         Vec3 cameraPos = levelState.cameraRenderState.pos;
         var pos = state.pos();
