@@ -95,3 +95,31 @@ a compatible, distributable 26.2 Blaze3D backend on acceptable terms.
 Until all gates pass, a world-pass replacement is blocked. A diagnostic overlay,
 copy/readback path, or final-composite hook is not evidence that terrain rendering
 has been replaced.
+
+
+## Direct Vulkan bridge spike assessment — 2026-10-10
+
+A source-level 26.2 assessment found a possible *instrumentation seam*, not yet a safe WebGPU bridge. The vanilla Vulkan backend's device object exposes accessors for its Vulkan instance, logical device, graphics queue and command encoder; its Vulkan command encoder has an operation to enqueue a raw Vulkan command buffer before Minecraft submits. However, Fe2O3 currently receives only the public `GpuDevice`; its backend reference is private, so reaching those implementation classes requires version-specific mixin/accessor code. The Vulkan device object closes the `VulkanPhysicalDevice` object after using it to populate device info and queue objects, and does not retain the physical-device handle or the logical-device creation feature chain as public state.
+
+This is a material issue for the pinned HAL. In the exact wgpu-hal v26.0.6 source, Vulkan `Adapter::device_from_raw` requires that the raw logical device was created from that exact HAL adapter and with the specified queue family, enabled extensions, and physical-device features; it also imposes explicit lifetime/ownership rules. In VulkanBackend's source, the `vkCreateDevice` call uses a private required-feature list and local creation structures. A bridge would therefore need to instrument device creation to capture exact instance/physical-device identity, enabled queue families, extension names and enabled feature chain, and retain matching lifetimes. A device-name or vendor/device-ID match is insufficient to prove physical-device identity.
+
+The command-submission side also remains incomplete: Minecraft can enqueue raw Vulkan command buffers, but Fe2O3's pinned public wgpu `CommandBuffer` is opaque and its public queue submits through its own `Queue::submit`. No pinned public path has been established to obtain the Vulkan command buffer recorded by wgpu and enqueue it in Minecraft's pending encoder. Therefore the raw-handle seam is promising for a low-level Vulkan prototype, but does not currently provide a WebGPU-to-Blaze3D bridge.
+
+### Spike acceptance criteria
+
+1. Add a disposable Vulkan-only client experiment behind an explicit development flag; do not alter production rendering or default behavior.
+2. Instrument backend creation and record the exact Vulkan instance, physical-device, logical-device, graphics queue family/index, enabled extensions and enabled Vulkan feature chain without taking ownership.
+3. Using the exact pinned HAL API, prove adapter/device identity and that all safety requirements for imported device and borrowed handles can be satisfied. Abort on incomplete metadata; never guess identity from adapter strings.
+4. Record a no-op or buffer-only WebGPU workload and enqueue its command buffer into Minecraft's existing frame submission without an independent queue submit.
+5. Run the experiment on validation-enabled software Vulkan and one hardware Vulkan path; verify correct output, synchronization, resize and teardown. Keep the vanilla renderer active.
+
+If the pinned wgpu API cannot expose a recordable raw command buffer while preserving wgpu resource tracking, stop the spike and evaluate a supported upstream API change or alternate renderer architecture. Do not replace a world pass based only on raw Vulkan access.
+
+Source references reviewed:
+
+- https://github.com/Renekovski/26.2-mcp/blob/main/src/com/mojang/blaze3d/systems/GpuDevice.java
+- https://github.com/Renekovski/26.2-mcp/blob/main/src/com/mojang/blaze3d/vulkan/VulkanBackend.java
+- https://github.com/Renekovski/26.2-mcp/blob/main/src/com/mojang/blaze3d/vulkan/VulkanDevice.java
+- https://github.com/Renekovski/26.2-mcp/blob/main/src/com/mojang/blaze3d/vulkan/VulkanCommandEncoder.java
+- https://github.com/gfx-rs/wgpu/blob/v26.0.6/wgpu-hal/src/vulkan/adapter.rs
+- https://docs.rs/wgpu/26.0.1/wgpu/struct.CommandBuffer.html
