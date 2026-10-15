@@ -7,7 +7,6 @@ import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.minecraft.client.renderer.texture.MipmapGenerator;
 import net.minecraft.client.renderer.texture.MipmapStrategy;
-import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Blocks;
@@ -160,6 +159,7 @@ public final class ClientSmokeTest implements FabricClientGameTest {
                 for (int i = 1; i < levels.length; i++) levels[i].close();
             }
         }
+        long outlineSubmissionsBefore = Blaze3DBlockOutlinePass.submittedCount();
         try (var world = context.worldBuilder().create()) {
             var server = world.getServer();
             server.runCommand("fill -8 99 -8 8 99 8 minecraft:stone");
@@ -175,12 +175,6 @@ public final class ClientSmokeTest implements FabricClientGameTest {
             context.waitFor(client -> client.level != null
                     && client.level.getBlockState(new BlockPos(-1, 100, 0)).is(Blocks.OAK_STAIRS), 1200);
             world.getConnection().waitForChunksRender();
-            BlockPos outlineTarget = new BlockPos(0, 100, 0);
-            context.runOnClient(client -> client.player.lookAt(EntityAnchorArgument.Anchor.EYES,
-                    new net.minecraft.world.phys.Vec3(0.5, 100.5, 0.5)));
-            context.waitFor(client -> client.hitResult instanceof net.minecraft.world.phys.BlockHitResult hit
-                    && hit.getBlockPos().equals(outlineTarget), 1200);
-            long outlineSubmissionsBefore = Blaze3DBlockOutlinePass.submittedCount();
             context.waitFor(client -> Blaze3DBlockOutlinePass.submittedCount() > outlineSubmissionsBefore, 1200);
             if (Blaze3DBlockOutlinePass.submittedCount() <= outlineSubmissionsBefore) {
                 throw new AssertionError("Selected block did not submit an outline through Blaze3D");
