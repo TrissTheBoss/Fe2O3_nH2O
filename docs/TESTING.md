@@ -25,10 +25,12 @@
   It uses the active device object and does not exercise actual renderer-device
   replacement, hardware, or a production rendering resource.
 - The opt-in Blaze3D block-outline Mixin is enabled in the production-client
-  smoke run. The test supplies a deterministic hit result and asserts the
-  `LevelRenderer` hook executes. Current CI does not populate the extracted
-  `BlockOutlineRenderState`, so a non-empty custom submission, visual parity and
-  performance improvement are not verified.
+  smoke run. With the explicit `fe2o3.testOutlineFixture` flag, the test fixture
+  creates a non-empty outline state from the test world's target stone shape when
+  Minecraft has no extracted state. The test requires the production submission
+  counter to increase before it can pass. This verifies a non-empty Blaze3D
+  submission, but not vanilla hit testing, pixel parity, hardware behavior or a
+  performance improvement.
 - A separate Fabric client test uses the packaged mod and real Mixin, checks a
   known output pixel and execution counter, confirms CUTOUT stays on vanilla,
   creates a block/entity/particle/sky scene, and asserts another GPU chain is
