@@ -7,8 +7,6 @@ import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.minecraft.client.renderer.texture.MipmapGenerator;
 import net.minecraft.client.renderer.texture.MipmapStrategy;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Blocks;
@@ -176,12 +174,13 @@ public final class ClientSmokeTest implements FabricClientGameTest {
             context.waitFor(client -> client.level != null
                     && client.level.getBlockState(new BlockPos(-1, 100, 0)).is(Blocks.OAK_STAIRS), 1200);
             world.getConnection().waitForChunksRender();
-            context.runOnClient(client -> client.hitResult = new BlockHitResult(
-                    new net.minecraft.world.phys.Vec3(0.5, 100.5, 0.5), Direction.UP,
-                    new BlockPos(0, 100, 0), false));
-            context.waitFor(client -> Blaze3DBlockOutlinePass.attemptedCount() > 0, 1200);
-            if (Blaze3DBlockOutlinePass.submittedCount() == 0) {
-                System.out.println("[Fe2O3] Outline hook ran, but LevelRenderState had no outline to submit");
+            BlockPos outlineTarget = new BlockPos(0, 100, 0);
+            context.waitFor(client -> client.hitResult instanceof net.minecraft.world.phys.BlockHitResult hit
+                    && hit.getBlockPos().equals(outlineTarget), 1200);
+            long outlineSubmissionsBefore = Blaze3DBlockOutlinePass.submittedCount();
+            context.waitFor(client -> Blaze3DBlockOutlinePass.submittedCount() > outlineSubmissionsBefore, 1200);
+            if (Blaze3DBlockOutlinePass.submittedCount() <= outlineSubmissionsBefore) {
+                throw new AssertionError("Selected block did not submit an outline through Blaze3D");
             }
             server.runCommand("particle minecraft:flame 0 101 0 0.5 0.5 0.5 0 80 force");
             context.waitTicks(2);
