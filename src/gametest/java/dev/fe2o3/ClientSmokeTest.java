@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.minecraft.client.renderer.texture.MipmapGenerator;
 import net.minecraft.client.renderer.texture.MipmapStrategy;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Blocks;
@@ -175,6 +176,8 @@ public final class ClientSmokeTest implements FabricClientGameTest {
                     && client.level.getBlockState(new BlockPos(-1, 100, 0)).is(Blocks.OAK_STAIRS), 1200);
             world.getConnection().waitForChunksRender();
             BlockPos outlineTarget = new BlockPos(0, 100, 0);
+            context.runOnClient(client -> client.player.lookAt(EntityAnchorArgument.Anchor.EYES,
+                    new net.minecraft.world.phys.Vec3(0.5, 100.5, 0.5)));
             context.waitFor(client -> client.hitResult instanceof net.minecraft.world.phys.BlockHitResult hit
                     && hit.getBlockPos().equals(outlineTarget), 1200);
             long outlineSubmissionsBefore = Blaze3DBlockOutlinePass.submittedCount();
