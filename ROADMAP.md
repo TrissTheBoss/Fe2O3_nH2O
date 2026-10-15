@@ -70,12 +70,12 @@ device, not write `options.txt` or force a backend.
 - This first pass is Java-side Blaze3D rendering. Rust/wgpu remains an
   independent compute backend for mipmaps; it does not produce draw commands or
   share Minecraft's frame targets.
-- **CI verified:** the production Mixin loads with the opt-in flag, and the live
-  test observes the LevelRenderer outline hook while preserving scene/reload
-  smoke evidence. This CI scene does not produce a `BlockOutlineRenderState`, so
-  it does not verify that the experimental pass submits an outline. A live
-  non-empty submission, pixel parity against vanilla, renderer recreation on
-  hardware, and a measured performance improvement remain open.
+- **CI verified:** the production client test creates a non-empty outline
+  state from the test-world stone shape only when Minecraft has no extracted
+  state, then requires the production submission counter to increase. This
+  verifies an actual non-empty Blaze3D submission. It does not verify vanilla
+  hit testing, pixel parity, renderer recreation on hardware, or a measured
+  performance improvement; those remain open.
 
 ### Community backend reference
 
