@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.block.BlockStateModel;
 import net.minecraft.client.renderer.state.level.BlockOutlineRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.CollisionContext;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import dev.fe2o3.Blaze3DBlockOutlinePass;
@@ -25,7 +26,7 @@ public abstract class LevelRendererMixin {
         BlockPos target = new BlockPos(0, 100, 0);
         if (client.level == null) return;
         BlockState blockState = client.level.getBlockState(target);
-        if (blockState.isAir()) return;
+        if (!blockState.is(Blocks.STONE)) return;
 
         BlockStateModel model = client.getModelManager().getBlockStateModelSet().get(blockState);
         boolean translucent = model.hasMaterialFlag(1);
