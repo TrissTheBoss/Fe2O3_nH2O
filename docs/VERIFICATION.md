@@ -304,3 +304,22 @@ and the live Minecraft client smoke.
 
 No vanilla image comparison or performance measurement was made. The opt-in
 outline pass remains experimental and disabled by default; M2 is incomplete.
+
+## Non-empty opt-in block-outline submission — 2026-10-15
+
+PR #15 code head `9759c98cc027028db0887c9d4e82dec836ec829b` passed all four
+native jobs and the live verification job in
+[Actions run 38749725158](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/38749725158).
+The client GameTest sets the explicit `fe2o3.testOutlineFixture` flag. At the
+existing `submitBlockOutline` hook, the fixture fills a missing state only
+when the test world's target block is stone, using the running game's model
+translucency, high-contrast option and stone shape. The test requires the
+production pass's submission counter to advance before it writes its completion
+marker.
+
+This verifies that a non-empty outline shape reaches the production
+`SubmitNodeCollector` submission path. The fixture supplies the state at the
+submission hook, so this does not verify vanilla hit testing or extraction, image
+parity against vanilla, physical hardware, alternate presentation backends or
+performance. Those checks remain pending; the outline remains opt-in.
+
