@@ -1,7 +1,5 @@
 package dev.fe2o3.mixin;
 
-import com.mojang.blaze3d.platform.Window;
-import dev.fe2o3.ClientSmokeTest;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.LevelRenderer;
