@@ -33,10 +33,12 @@ during the normal draw phase. The opt-in path duplicates the 26.2 outline
 submission choices (shape, translucency, line width, and high-contrast layer)
 and leaves the vanilla method in place as its default and debug-shape fallback.
 It owns no persistent GPU handle, so it does not register a device resource.
-The CI client smoke test enables it and verifies the LevelRenderer hook runs.
-That scene does not produce a `BlockOutlineRenderState`, so the test does not
-verify a non-empty outline submission. A live submission and visual equality
-with a vanilla baseline remain pending.
+The CI client smoke test enables it and requires the production submission
+counter to increase. Under the explicit test-only JVM flag, a fixture populates
+a missing outline state from the test world's stone shape at the submission
+hook. This verifies a non-empty shape reaches Blaze3D's real collector, but it
+does not exercise vanilla hit testing/state extraction or compare rendered
+pixels against a vanilla baseline. Hardware coverage remains pending.
 
 The existing wgpu mipmap device is independent and is not recreated or shared
 through this API. In the chosen architecture, Blaze3D owns all Minecraft draw
