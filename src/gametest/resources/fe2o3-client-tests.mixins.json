@@ -1,7 +1,0 @@
-{
-  "required": true,
-  "package": "dev.fe2o3.mixin",
-  "compatibilityLevel": "JAVA_25",
-  "client": ["OutlineFixtureMixin"],
-  "injectors": { "defaultRequire": 1 }
-}
