@@ -17,6 +17,9 @@ test to pass. The workflow builds from the tag commit and publishes that exact
 run's `fe2o3-nh2o-<version>.jar` plus its `.jar.sha256` sidecar. It does not
 reuse an older temporary Actions artifact.
 
+The workflow withholds distributable JAR artifacts until `ROADMAP.md` marks M2
+implemented and CI-verified.
+
 Only SemVer prereleases with `alpha.N`, `beta.N` or `rc.N` suffixes are accepted
 by automation, and they are marked as GitHub prereleases. Stable tags fail the
 release job intentionally. A stable release requires completing the visual

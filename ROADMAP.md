@@ -24,7 +24,7 @@ linked test run; **planned** means it does not exist. No percentage estimates.
 - Add cutout/coverage handling only if it can remain exactly compatible and faster.
 - Add verified additional native targets, dependency audit and release provenance.
 
-## M2 — Blaze3D backend integration and first world pass (in progress)
+## M2 — Blaze3D rendering integration and first world pass (in progress)
 
 ### Renderer backend lifecycle
 
@@ -57,10 +57,42 @@ device, not write `options.txt` or force a backend.
   phases and thread. Do not assume OpenGL-specific state or raw Vulkan handles.
 - Test clean first launch, OpenGL, Vulkan when available, changed preference,
   failed Vulkan startup recovery, window resize, resource reload and shutdown.
-- Verify pixels and frame synchronization before replacing one actual pass.
-  Roll back to that vanilla pass on unsupported capabilities or failure.
+- For each pass, verify pixel parity and fallback before enabling it by default.
+  Keep unsupported paths on the original vanilla submission.
+
+### First Blaze3D pass
+
+- **Implemented in source; opt-in:** the block-selection outline submission can
+  be replaced through Minecraft 26.2's `SubmitNodeCollector`, using the extracted
+  `BlockOutlineRenderState` and Blaze3D. Empty state falls through to vanilla.
+  Set `-Dfe2o3.blaze3dOutline=true` to exercise it; otherwise vanilla remains
+  unchanged.
+- This first pass is Java-side Blaze3D rendering. Rust/wgpu remains an
+  independent compute backend for mipmaps; it does not produce draw commands or
+  share Minecraft's frame targets.
+- **CI verified:** the production client test creates a non-empty outline
+  state from the test-world stone shape only when Minecraft has no extracted
+  state, then requires the production submission counter to increase. This
+  verifies an actual non-empty Blaze3D submission. The owner also reports
+  manual visual smoke checks on an RX 6800 XT using Minecraft's OpenGL and
+  Vulkan backends; the outlines looked correct in both. Exact pixel parity,
+  vanilla hit testing, renderer recreation, and measured performance remain
+  unverified.
 
 ### Community backend reference
+
+- **No validated shared-wgpu path yet:** see [ADR-010](docs/adr/010-community-backend-adoption.md) for the wgpu-mc and Vulcanite assessments, exact interop gap, and revalidation gates.
+- **Direct Vulkan spike: stopped at source/API gate.** Minecraft exposes a raw-command-buffer enqueue seam internally, but pinned wgpu 26.0.1/wgpu-hal 26.0.6 do not expose the recorded Vulkan command buffer through a supported public API. Do not add handle-capture mixins until that command submission gap has a supported resolution. See [ADR-010](docs/adr/010-community-backend-adoption.md) and the verification log.
+- The pinned wgpu/Minecraft shared-device path remains unproven and is not used
+  by this M2 rendering approach. Keep backend-handle and command-buffer
+  interop work out of the rendering path; wgpu remains compute-only.
+
+The first pass must keep vanilla fallback explicit, use extracted render state,
+and execute in Minecraft's draw phase through Blaze3D. Passing compilation or a
+live submission smoke test alone does not prove pixel parity or a performance
+benefit. Continue by validating the selection-outline images on supported
+backends, then choose the next isolated pass only after its render state and
+fallback can be preserved.
 
 Assess the current wgpu-mc/Electrum rewrite as a community solution. Its stated
 goal is first full Blaze3D backend compatibility, followed by terrain replacement.
@@ -72,8 +104,8 @@ review. It is a reference, not currently a safe runtime dependency.
   resource reload lifecycle before connecting a second GPU backend.
 - Avoid a separate raw-window surface unless interoperability with Minecraft's
   frame is proven.
-- Replace one actual vanilla world pass with a tested rollback path; a diagnostic
-  triangle or extra overlay does not count as pass replacement.
+- Extend to another isolated vanilla pass only after the first pass has verified
+  pixel parity, fallback, lifecycle behavior and a measured benefit.
 
 ## M3 — world renderer and vanilla parity (planned)
 

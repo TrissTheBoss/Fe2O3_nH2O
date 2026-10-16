@@ -25,8 +25,12 @@ These are brief, user-reported readings, not a controlled benchmark or evidence
 that mipmap generation caused the frame rates; Minecraft still handles world
 drawing. See [the verification record](docs/VERIFICATION.md) for test limits.
 
-Terrain, full and partial blocks, entities, particles, skies, weather, fluids,
-lighting, animations and GUI drawing still use Minecraft's renderer. Their full
+The block-selection outline has an experimental opt-in Blaze3D submission path
+(`-Dfe2o3.blaze3dOutline=true`) that uses Minecraft's extracted outline shape
+and render collector. It is disabled by default pending image-parity and
+performance validation. Terrain, full and partial blocks, entities, particles,
+skies, weather, fluids, lighting, animations and GUI drawing still use
+Minecraft's renderer. Their full
 visual parity has **not** been tested. Cutout strategies, supplied mip chains,
 unsupported image formats/sizes and unavailable native backends use vanilla.
 Resource-pack images are consumed after Minecraft loads them; the mod does not

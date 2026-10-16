@@ -23,6 +23,44 @@ public final class ClientSmokeTest implements FabricClientGameTest {
         context.runOnClient(client -> {
             long initialGeneration = Blaze3DDeviceLifecycle.generation();
             if (initialGeneration == 0) throw new AssertionError("Blaze3D renderer lifecycle was not initialized");
+            AtomicInteger failedInitializationReady = new AtomicInteger();
+            AtomicInteger failedInitializationLost = new AtomicInteger();
+            Blaze3DDeviceLifecycle.Resource failedInitialization = new Blaze3DDeviceLifecycle.Resource() {
+                @Override
+                public void onDeviceReady(com.mojang.blaze3d.systems.GpuDevice device, long generation) {
+                    failedInitializationReady.incrementAndGet();
+                    throw new AssertionError("Expected lifecycle initialization failure");
+                }
+
+                @Override
+                public void onDeviceLost(com.mojang.blaze3d.systems.GpuDevice device) {
+                    failedInitializationLost.incrementAndGet();
+                }
+            };
+            Blaze3DDeviceLifecycle.register(failedInitialization);
+            if (failedInitializationReady.get() != 1 || failedInitializationLost.get() != 1) {
+                throw new AssertionError("A failed resource initialization was not isolated and released");
+            }
+
+            AtomicInteger failedReleaseReady = new AtomicInteger();
+            AtomicInteger failedReleaseLost = new AtomicInteger();
+            Blaze3DDeviceLifecycle.Resource failedRelease = new Blaze3DDeviceLifecycle.Resource() {
+                @Override
+                public void onDeviceReady(com.mojang.blaze3d.systems.GpuDevice device, long generation) {
+                    failedReleaseReady.incrementAndGet();
+                }
+
+                @Override
+                public void onDeviceLost(com.mojang.blaze3d.systems.GpuDevice device) {
+                    failedReleaseLost.incrementAndGet();
+                    throw new IllegalStateException("Expected lifecycle release failure");
+                }
+            };
+            Blaze3DDeviceLifecycle.register(failedRelease);
+            if (failedReleaseReady.get() != 1) {
+                throw new AssertionError("Release-failure probe did not attach to the active device");
+            }
+
             AtomicInteger ready = new AtomicInteger();
             AtomicInteger lost = new AtomicInteger();
             AtomicReference<GpuBuffer> ownedBuffer = new AtomicReference<>();
@@ -50,6 +88,9 @@ public final class ClientSmokeTest implements FabricClientGameTest {
                 }
             };
             Blaze3DDeviceLifecycle.register(probe);
+            if (ready.get() != 1) {
+                throw new AssertionError("A prior resource callback failure prevented later resource initialization");
+            }
             Blaze3DDeviceLifecycle.register(probe);
             if (ready.get() != 1) throw new AssertionError("Resource did not attach exactly once to active Blaze3D device");
             GpuBuffer firstBuffer = ownedBuffer.get();
@@ -57,14 +98,24 @@ public final class ClientSmokeTest implements FabricClientGameTest {
                 throw new AssertionError("Resource did not create a live Blaze3D buffer");
             }
 
+            long activeGeneration = Blaze3DDeviceLifecycle.generation();
+            var activeDevice = com.mojang.blaze3d.systems.RenderSystem.getDevice();
+            Blaze3DDeviceLifecycle.rendererWillInitialize(activeDevice);
+            Blaze3DDeviceLifecycle.rendererInitialized(activeDevice);
+            if (Blaze3DDeviceLifecycle.generation() != activeGeneration || ready.get() != 1
+                    || lost.get() != 0 || ownedBuffer.get() != firstBuffer || firstBuffer.isClosed()) {
+                throw new AssertionError("Reinitializing the active Blaze3D device must preserve its resources");
+            }
+
             Blaze3DDeviceLifecycle.rendererClosing();
-            if (lost.get() != 1 || !firstBuffer.isClosed()) {
-                throw new AssertionError("Renderer detach did not close the first Blaze3D buffer");
+            if (failedReleaseLost.get() != 1 || lost.get() != 1 || !firstBuffer.isClosed()) {
+                throw new AssertionError("A failing release callback prevented later resources from detaching");
             }
             long detachedGeneration = Blaze3DDeviceLifecycle.generation();
             Blaze3DDeviceLifecycle.rendererInitialized(com.mojang.blaze3d.systems.RenderSystem.getDevice());
-            if (Blaze3DDeviceLifecycle.generation() != detachedGeneration + 1 || ready.get() != 2) {
-                throw new AssertionError("Resource did not reinitialize for the next Blaze3D generation");
+            if (Blaze3DDeviceLifecycle.generation() != detachedGeneration + 1 || ready.get() != 2
+                    || failedReleaseReady.get() != 1) {
+                throw new AssertionError("Only healthy resources should reinitialize for the next device generation");
             }
 
             GpuBuffer secondBuffer = ownedBuffer.get();
@@ -108,12 +159,14 @@ public final class ClientSmokeTest implements FabricClientGameTest {
                 for (int i = 1; i < levels.length; i++) levels[i].close();
             }
         }
+        long outlineSubmissionsBefore = Blaze3DBlockOutlinePass.submittedCount();
         try (var world = context.worldBuilder().create()) {
             var server = world.getServer();
             server.runCommand("fill -8 99 -8 8 99 8 minecraft:stone");
             server.runCommand("setblock -2 100 0 minecraft:stone");
             server.runCommand("setblock -1 100 0 minecraft:oak_stairs");
-            server.runCommand("setblock 0 100 0 minecraft:oak_slab");
+            server.runCommand("setblock -3 100 0 minecraft:oak_slab");
+            server.runCommand("setblock 0 100 0 minecraft:stone");
             server.runCommand("setblock 1 100 0 minecraft:glass");
             server.runCommand("setblock 2 100 0 minecraft:oak_leaves");
             server.runCommand("summon minecraft:pig 3 100 0 {NoAI:1b}");
@@ -122,6 +175,27 @@ public final class ClientSmokeTest implements FabricClientGameTest {
             context.waitFor(client -> client.level != null
                     && client.level.getBlockState(new BlockPos(-1, 100, 0)).is(Blocks.OAK_STAIRS), 1200);
             world.getConnection().waitForChunksRender();
+            context.waitFor(client -> Blaze3DBlockOutlinePass.submittedCount() > outlineSubmissionsBefore, 1200);
+            if (Blaze3DBlockOutlinePass.submittedCount() <= outlineSubmissionsBefore) {
+                throw new AssertionError("Selected block did not submit an outline through Blaze3D");
+            }
+            // Capture the same scene through vanilla and the experimental Blaze3D outline path.
+            // The system property is read by the hook on every frame, so this changes only the
+            // outline submission while leaving the world, camera, renderer and backend intact.
+            System.setProperty("fe2o3.blaze3dOutline", "false");
+            context.waitTicks(20);
+            world.getConnection().waitForChunksRender();
+            context.takeScreenshot("outline-vanilla");
+            long beforeExperimentalCapture = Blaze3DBlockOutlinePass.submittedCount();
+            System.setProperty("fe2o3.blaze3dOutline", "true");
+            context.waitFor(client -> Blaze3DBlockOutlinePass.submittedCount() > beforeExperimentalCapture, 1200);
+            if (Blaze3DBlockOutlinePass.submittedCount() <= beforeExperimentalCapture) {
+                throw new AssertionError("Experimental outline was not submitted for the comparison capture");
+            }
+            context.waitTicks(20);
+            world.getConnection().waitForChunksRender();
+            context.takeScreenshot("outline-experimental");
+
             server.runCommand("particle minecraft:flame 0 101 0 0.5 0.5 0.5 0 80 force");
             context.waitTicks(2);
             context.takeScreenshot("terrain-partial-blocks-entity-particles-sky");
@@ -134,7 +208,7 @@ public final class ClientSmokeTest implements FabricClientGameTest {
             context.takeScreenshot("after-resource-reload");
         }
         try {
-            Files.writeString(Path.of("FE2O3_CLIENT_TEST_PASSED"), "mixin, scene and resource reload passed\n");
+            Files.writeString(Path.of("FE2O3_CLIENT_TEST_PASSED"), "mixin, Blaze3D block-outline submission, scene and resource reload passed\n");
         } catch (java.io.IOException e) {
             throw new AssertionError("Unable to write client test completion marker", e);
         }
