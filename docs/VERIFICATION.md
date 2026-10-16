@@ -340,3 +340,21 @@ include vanilla comparison screenshots or pixel diffs, so exact image parity
 has not been established. The tests used two separate launches; they do not
 cover switching backends in place, other GPUs, performance, or long stress
 runs.
+
+
+## Paired outline capture follow-up — 2026-10-16
+
+PR #15 code head `4bb14225ba2beb60fc3faea1817d1c0ce568d67f` passed all four
+native jobs and the live verification job in
+[Actions run 38924576773](https://github.com/TrissTheBoss/Fe2O3_nH2O/actions/runs/38924576773).
+The client test captured the same scene with vanilla and experimental outline
+submission. The CI host used Minecraft OpenGL on llvmpipe/Mesa 25.2.8, not
+hardware Vulkan.
+
+The vanilla capture shows the full test row. The experimental capture omits
+several blocks, while the next capture shows some of them again. Waiting for
+chunks to render and allowing 20 client ticks before each capture did not
+remove the inconsistency. The captures are therefore not a reliable pixel
+parity comparison. This does not match the owner's manual visual checks on the
+RX 6800 XT, where outlines looked correct with both Minecraft OpenGL and Vulkan.
+Exact image parity remains unverified.
