@@ -73,10 +73,10 @@ device, not write `options.txt` or force a backend.
 - **CI verified:** the production client test creates a non-empty outline
   state from the test-world stone shape only when Minecraft has no extracted
   state, then requires the production submission counter to increase. This
-  verifies an actual non-empty Blaze3D submission. The owner also reports a
-  manual visual smoke check on an RX 6800 XT using Minecraft's OpenGL backend;
-  the outlines looked correct. Exact pixel parity, vanilla hit testing, hardware
-  Vulkan presentation, renderer recreation, and measured performance remain
+  verifies an actual non-empty Blaze3D submission. The owner also reports
+  manual visual smoke checks on an RX 6800 XT using Minecraft's OpenGL and
+  Vulkan backends; the outlines looked correct in both. Exact pixel parity,
+  vanilla hit testing, renderer recreation, and measured performance remain
   unverified.
 
 ### Community backend reference
