@@ -183,7 +183,7 @@ public final class ClientSmokeTest implements FabricClientGameTest {
             // The system property is read by the hook on every frame, so this changes only the
             // outline submission while leaving the world, camera, renderer and backend intact.
             System.setProperty("fe2o3.blaze3dOutline", "false");
-            context.waitTicks(2);
+            context.waitTicks(20);
             world.getConnection().waitForChunksRender();
             context.takeScreenshot("outline-vanilla");
             long beforeExperimentalCapture = Blaze3DBlockOutlinePass.submittedCount();
@@ -192,7 +192,7 @@ public final class ClientSmokeTest implements FabricClientGameTest {
             if (Blaze3DBlockOutlinePass.submittedCount() <= beforeExperimentalCapture) {
                 throw new AssertionError("Experimental outline was not submitted for the comparison capture");
             }
-            context.waitTicks(2);
+            context.waitTicks(20);
             world.getConnection().waitForChunksRender();
             context.takeScreenshot("outline-experimental");
 
