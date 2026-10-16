@@ -184,6 +184,7 @@ public final class ClientSmokeTest implements FabricClientGameTest {
             // outline submission while leaving the world, camera, renderer and backend intact.
             System.setProperty("fe2o3.blaze3dOutline", "false");
             context.waitTicks(2);
+            world.getConnection().waitForChunksRender();
             context.takeScreenshot("outline-vanilla");
             long beforeExperimentalCapture = Blaze3DBlockOutlinePass.submittedCount();
             System.setProperty("fe2o3.blaze3dOutline", "true");
@@ -192,6 +193,7 @@ public final class ClientSmokeTest implements FabricClientGameTest {
                 throw new AssertionError("Experimental outline was not submitted for the comparison capture");
             }
             context.waitTicks(2);
+            world.getConnection().waitForChunksRender();
             context.takeScreenshot("outline-experimental");
 
             server.runCommand("particle minecraft:flame 0 101 0 0.5 0.5 0.5 0 80 force");
