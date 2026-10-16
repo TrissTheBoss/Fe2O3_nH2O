@@ -325,8 +325,18 @@ performance. Those checks remain pending; the outline remains opt-in.
 
 
 
-## Owner-reported hardware outline check — 2026-10-16
+## Owner-reported hardware outline checks — 2026-10-16
 
-The owner tested PR #15's `fe2o3-nh2o-0.1.0-alpha.1` JAR on Windows x86_64 with Minecraft 26.2, Java 25.0.1, Prism Launcher 10.0.5, an AMD Radeon RX 6800 XT and driver 26.8.1. The attached launch log shows `-Dfe2o3.blaze3dOutline=true`, Minecraft selecting OpenGL, and Fe2O3's wgpu preference and adapter using GL. The owner reports that the block outlines look correct in this run.
+The owner tested PR #15's `fe2o3-nh2o-0.1.0-alpha.1` JAR on Windows x86_64
+with Minecraft 26.2, Java 25.0.1, Prism Launcher 10.0.5, an AMD Radeon RX 6800
+XT and driver 26.8.1. Both attached launch logs show
+`-Dfe2o3.blaze3dOutline=true`. In the OpenGL run, Minecraft selected OpenGL
+and Fe2O3's wgpu adapter used GL. In the Vulkan run, Minecraft selected Vulkan
+and Fe2O3's wgpu adapter used Vulkan. The owner reports that the outlines look
+correct on both backends.
 
-This is a manual visual smoke check on physical AMD hardware. The supplied log does not include a vanilla comparison screenshot or pixel diff, so it does not establish exact image parity. Outline rendering through Minecraft's Vulkan backend remains untested on hardware; the prior software-Vulkan CI run validates mipmap computation, not Minecraft Vulkan outline presentation.
+These are manual visual smoke checks on physical AMD hardware. The logs do not
+include vanilla comparison screenshots or pixel diffs, so exact image parity
+has not been established. The tests used two separate launches; they do not
+cover switching backends in place, other GPUs, performance, or long stress
+runs.
