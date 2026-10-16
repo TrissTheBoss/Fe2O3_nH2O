@@ -179,6 +179,21 @@ public final class ClientSmokeTest implements FabricClientGameTest {
             if (Blaze3DBlockOutlinePass.submittedCount() <= outlineSubmissionsBefore) {
                 throw new AssertionError("Selected block did not submit an outline through Blaze3D");
             }
+            // Capture the same scene through vanilla and the experimental Blaze3D outline path.
+            // The system property is read by the hook on every frame, so this changes only the
+            // outline submission while leaving the world, camera, renderer and backend intact.
+            System.setProperty("fe2o3.blaze3dOutline", "false");
+            context.waitTicks(2);
+            context.takeScreenshot("outline-vanilla");
+            long beforeExperimentalCapture = Blaze3DBlockOutlinePass.submittedCount();
+            System.setProperty("fe2o3.blaze3dOutline", "true");
+            context.waitFor(client -> Blaze3DBlockOutlinePass.submittedCount() > beforeExperimentalCapture, 1200);
+            if (Blaze3DBlockOutlinePass.submittedCount() <= beforeExperimentalCapture) {
+                throw new AssertionError("Experimental outline was not submitted for the comparison capture");
+            }
+            context.waitTicks(2);
+            context.takeScreenshot("outline-experimental");
+
             server.runCommand("particle minecraft:flame 0 101 0 0.5 0.5 0.5 0 80 force");
             context.waitTicks(2);
             context.takeScreenshot("terrain-partial-blocks-entity-particles-sky");
