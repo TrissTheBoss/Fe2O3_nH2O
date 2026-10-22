@@ -1,6 +1,7 @@
 package dev.fe2o3;
 
 import net.caffeinemc.mods.sodium.api.config.ConfigEntryPoint;
+import net.caffeinemc.mods.sodium.api.config.StorageEventHandler;
 import net.caffeinemc.mods.sodium.api.config.structure.ConfigBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -9,7 +10,7 @@ import net.minecraft.resources.Identifier;
 public final class SodiumConfigEntryPoint implements ConfigEntryPoint {
     private static final Identifier ENABLED = Identifier.fromNamespaceAndPath("fe2o3_nh2o", "mipmaps_enabled");
     private static final Identifier MIN_PIXELS = Identifier.fromNamespaceAndPath("fe2o3_nh2o", "mipmaps_minimum_pixels");
-    private final Runnable saveHandler = MipmapConfig::save;
+    private final StorageEventHandler saveHandler = MipmapConfig::save;
 
     @Override
     public void registerConfigLate(ConfigBuilder builder) {
