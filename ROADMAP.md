@@ -40,8 +40,8 @@ does not pass this stage.
   enabling GPU mipmaps and setting the minimum source texture area. Persist the
   settings independently because Sodium's API provides presentation and
   bindings, not file storage.
-- Compile against the pinned Sodium 0.9.2 API as a compile-only optional
-  dependency; Sodium is not required to load the standalone accelerator.
+- Compile against the pinned Sodium 0.9.2 API; Sodium remains optional at
+  runtime and is not required to load the standalone accelerator.
 - Build a minimal addon integration with a documented Sodium API where one
   covers the desired mipmap work. Keep the Rust core independent of Sodium and
   confine version-specific hooks to a small Java adapter.
