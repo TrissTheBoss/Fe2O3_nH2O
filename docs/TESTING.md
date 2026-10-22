@@ -35,26 +35,31 @@ remaining failures in VERIFICATION.md. Passing tests must not be inferred from
 a successful compile. Record manually reported results with their evidence and
 limitations; don't present a subjective observation as a measurement.
 
-## Manual visual parity matrix — not yet executed
+## Focused mipmap and addon matrix
 
-| Area | Required cases | Current draw path | Verification |
-| --- | --- | --- | --- |
-| Terrain/full blocks | All directions, biome tint, AO, light levels 0–15, caves, chunk boundaries | Vanilla | Pending |
-| Non-full blocks | Stairs, slabs, fences, panes, doors, plants, redstone, custom baked models | Vanilla | Pending |
-| Entities/block entities | Skins, armor, items, glint, outlines, shadows, chests, signs, banners | Vanilla | Pending |
-| Particles | Opaque, translucent, lit, weather and item/block particles | Vanilla | Pending |
-| Sky/weather | Day/night, sunrise, stars, clouds, rain/snow, all dimensions | Vanilla | Pending |
-| Fluids/transparency | Water/lava, glass overlap, sorting and underwater fog | Vanilla | Pending |
-| Packs | Default, 16/64/256/512px, animated strips, alpha, custom models, supplied mips, all strategies | Mixed preparation, vanilla drawing | Synthetic pixel tests only |
-| Lifecycle | Repeated F3+T, pack enable/disable/order, world changes, resize, fullscreen, mip level changes | Vanilla plus native stage | Pending |
-| Backends/hardware | Minecraft OpenGL and Vulkan; Intel/AMD/NVIDIA, Apple Metal, Windows DX12 | Independent compute | Linux software Vulkan planned |
-| Failure behavior | Unsupported arch, no adapter, device loss, noexec temp, shutdown during reload | Vanilla fallback where recoverable | Partial automated coverage |
+The release scope is mipmap preparation and the Sodium addon integration. Full
+terrain, entity, sky, weather, particle, and general world-renderer parity are
+not project acceptance gates.
 
-Use the same world copy, seed, camera pose, time, weather, resolution, packs and
-settings for vanilla and modified captures. Record versions and hashes. Compare
-images with an exact diff where deterministic; mask only explained temporal
-effects and retain both originals and diff. Never overwrite a baseline simply
-because a test changed. Keep captures outside git in linked test artifacts.
+| Area | Required cases | Status |
+| --- | --- | --- |
+| Mipmap correctness | MEAN/AUTO, odd dimensions, strips, alpha patterns, multiple levels | Exact software-GPU differential cases exist; expand realistic resource-pack cases |
+| Vanilla fallback | Specialized strategies, supplied levels, unsupported sizes/formats | Existing strategy/fallback coverage; expand under the pinned game version |
+| Resource lifecycle | Repeated reloads, world changes, resize, shutdown, native failure | Partial client smoke coverage; stress testing pending |
+| Sodium integration | Pinned Sodium version, addon entry point, config API, fallback behavior | Not implemented |
+| Sodium ecosystem | Iris and explicitly selected addon combinations, version by version | Not tested; no universal compatibility claim |
+| Backend | Minecraft/Sodium OpenGL and Vulkan paths, active device ownership | Owner reported standalone OpenGL and Vulkan smoke runs; Sodium paths not tested |
+| Rust hot paths | Named profile target, reference behavior, end-to-end measurement | No Sodium hot path selected or rewritten |
+
+For each new Sodium integration test, record Minecraft, Fabric Loader, Sodium,
+Java, GPU/driver, backend, addon set, resource packs, and exact mod commit.
+Test a clean Sodium installation first, then add one addon at a time. A passing
+Sodium startup alone does not establish that another addon works or that the
+mipmap hook ran.
+
+Keep differential baselines from Minecraft's own implementation. Assert that
+the accelerated path executed so a fallback cannot create a false positive.
+Capture artifacts outside git and retain originals, hashes, and diffs.
 
 ## Performance protocol — controlled benchmark pending
 
@@ -80,11 +85,12 @@ For a controlled comparison, use the same world, camera, scene, view and
 simulation distances, display resolution, resource packs and graphics settings.
 Capture raw FPS/frame-time samples from the same measurement tool, alternate
 backend runs after warmup, and record median/p95/p99 over a defined interval.
-Compare Fe2O3 enabled against disabled on each backend. Also measure reload
-latency and peak resident/native/GPU memory; dispatch time alone excludes JNI
-and readback costs.
+Compare the mipmap stage enabled and disabled on each backend. Measure end-to-end
+resource reload latency, per-image CPU time, JNI copies, dispatch/readback, and
+peak resident/native/GPU memory; dispatch time alone excludes integration costs.
+Measure frame-time only if a later, profiled hot path affects frame rendering.
 
 Do not call a software Vulkan result a hardware speedup. A loading-stage
-optimization should not be presented as a world-renderer benchmark. Set the
-default threshold only after end-to-end measurements show a benefit without
-visual regressions.
+optimization is not an FPS optimization. Set the default threshold only after
+end-to-end measurements show a benefit without visual regressions.
+
