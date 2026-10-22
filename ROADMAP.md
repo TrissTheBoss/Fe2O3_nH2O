@@ -32,10 +32,16 @@ not evidence that mipmap generation improves steady-state rendering.
 supported backend/device combination. A faster shader microbenchmark alone
 does not pass this stage.
 
-## M2 — Sodium addon integration (planned)
+## M2 — Sodium addon integration (in progress)
 
 - Pin the target Minecraft and Sodium versions and inspect their supported
   addon/configuration/rendering APIs.
+- Register a Sodium Video Settings page through the public Config API for
+  enabling GPU mipmaps and setting the minimum source texture area. Persist the
+  settings independently because Sodium's API provides presentation and
+  bindings, not file storage.
+- Compile against the pinned Sodium 0.9.2 API as a compile-only optional
+  dependency; Sodium is not required to load the standalone accelerator.
 - Build a minimal addon integration with a documented Sodium API where one
   covers the desired mipmap work. Keep the Rust core independent of Sodium and
   confine version-specific hooks to a small Java adapter.
@@ -48,9 +54,10 @@ does not pass this stage.
   combinations listed in the test matrix.
 
 **Acceptance:** the production client proves the addon entry point runs with the
-target Sodium build, exact mipmap output is maintained, and unsupported
-requests safely use the supported fallback. There is no promise of
-compatibility with every current or future addon.
+target Sodium build, the page is visible and its settings apply and persist,
+exact mipmap output is maintained, and unsupported requests safely use the
+supported fallback. There is no promise of compatibility with every current or
+future addon.
 
 ## M3 — Vulkan integration (planned)
 

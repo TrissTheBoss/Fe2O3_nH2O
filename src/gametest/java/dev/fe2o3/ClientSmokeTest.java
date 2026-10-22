@@ -29,6 +29,42 @@ public final class ClientSmokeTest implements FabricClientGameTest {
         }
         System.out.println("[Fe2O3] Sodium compatibility target: " + sodiumVersion);
         context.runOnClient(client -> {
+            boolean originalEnabled = MipmapConfig.enabled();
+            int originalMinimumPixels = MipmapConfig.minimumPixels();
+            MipmapConfig.setEnabled(false);
+            long beforeDisabled = Mipmaps.completed();
+            try (NativeImage base = new NativeImage(16, 16, true)) {
+                NativeImage[] levels = MipmapGenerator.generateMipLevels(
+                        Identifier.fromNamespaceAndPath("fe2o3_nh2o", "disabled-setting"),
+                        new NativeImage[]{base}, 4, MipmapStrategy.MEAN, 0.0f,
+                        new Transparency(false, false));
+                try {
+                    if (Mipmaps.completed() != beforeDisabled) {
+                        throw new AssertionError("Disabled Sodium setting still submitted GPU mipmaps");
+                    }
+                } finally {
+                    for (int i = 1; i < levels.length; i++) levels[i].close();
+                }
+            }
+            MipmapConfig.setEnabled(true);
+            MipmapConfig.setMinimumPixels(65_536);
+            long beforeThreshold = Mipmaps.completed();
+            try (NativeImage base = new NativeImage(16, 16, true)) {
+                NativeImage[] levels = MipmapGenerator.generateMipLevels(
+                        Identifier.fromNamespaceAndPath("fe2o3_nh2o", "minimum-pixels-setting"),
+                        new NativeImage[]{base}, 4, MipmapStrategy.MEAN, 0.0f,
+                        new Transparency(false, false));
+                try {
+                    if (Mipmaps.completed() != beforeThreshold) {
+                        throw new AssertionError("Minimum-area Sodium setting did not select vanilla");
+                    }
+                } finally {
+                    for (int i = 1; i < levels.length; i++) levels[i].close();
+                }
+            }
+            MipmapConfig.setEnabled(originalEnabled);
+            MipmapConfig.setMinimumPixels(originalMinimumPixels);
+
             long initialGeneration = Blaze3DDeviceLifecycle.generation();
             if (initialGeneration == 0) throw new AssertionError("Blaze3D renderer lifecycle was not initialized");
             AtomicInteger ready = new AtomicInteger();

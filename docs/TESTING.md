@@ -46,7 +46,7 @@ not project acceptance gates.
 | Mipmap correctness | MEAN/AUTO, odd dimensions, strips, alpha patterns, multiple levels | Exact software-GPU differential cases exist; expand realistic resource-pack cases |
 | Vanilla fallback | Specialized strategies, supplied levels, unsupported sizes/formats | Existing strategy/fallback coverage; expand under the pinned game version |
 | Resource lifecycle | Repeated reloads, world changes, resize, shutdown, native failure | Partial client smoke coverage; stress testing pending |
-| Sodium integration | Pinned Sodium version, addon entry point, config API, fallback behavior | Not implemented |
+| Sodium integration | Sodium 0.9.2 for MC 26.2, public Config API page, setting persistence and live behavior | Config page implemented; awaiting automated build/client verification |
 | Sodium ecosystem | Iris and explicitly selected addon combinations, version by version | Not tested; no universal compatibility claim |
 | Backend | Minecraft/Sodium OpenGL and Vulkan paths, active device ownership | Owner reported standalone OpenGL and Vulkan smoke runs; Sodium paths not tested |
 | Rust hot paths | Named profile target, reference behavior, end-to-end measurement | No Sodium hot path selected or rewritten |

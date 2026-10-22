@@ -1,5 +1,22 @@
 # Executed verification
 
+## Sodium Video Settings integration — implementation under CI review (2026-10-22)
+
+Added a compile-only dependency on Sodium's public Config API 0.9.2 for
+Minecraft 26.2, its documented late config entrypoint, a translated Video
+Settings page, persistent enable/minimum-area controls, and client smoke checks
+that assert both settings cause the intended vanilla fallback. Local static
+checks pass for metadata/translations JSON and `git diff --check`.
+
+This checkout has no Gradle executable or usable JDK 25, so compilation,
+automated tests, Sodium menu rendering, and persistence have not yet been
+verified here. The owner-provided Windows log dated 2026-10-22 reports Vulkan
+and the RX 6800 XT, but its loaded-mod list contains Fe2O3 and FPS Display and
+does not list Sodium; therefore it remains standalone Vulkan smoke evidence,
+not evidence of Sodium co-loading or the new settings page. Do not mark the
+integration verified until the pinned-Sodium production client test passes and
+the menu/settings are confirmed in game.
+
 ## Initial compiled milestone — 2026-10-08
 
 Commit: `2c650f96c538c7956daf9fc1337a23601f8a330e`

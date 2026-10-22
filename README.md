@@ -5,12 +5,13 @@ Fe2O3 is an experimental client-side Minecraft performance project focused on
 Sodium addon, investigate Vulkan support through the active rendering stack,
 and move only measured, suitable hot paths into Rust.
 
-**Current status:** the alpha implementation is a standalone Fabric mod that
-uses Rust, wgpu and WGSL to generate eligible Minecraft mip chains on the GPU.
-It is **not yet a Sodium addon**. It does not replace Sodium rendering code,
-share Sodium GPU resources, or optimize world-rendering frame time. Sodium
-integration, Vulkan rendering integration, and Rust replacements for Sodium
-hot paths are roadmap goals and have not been implemented or verified.
+**Current status:** the mod uses Rust, wgpu and WGSL to generate eligible
+Minecraft mip chains on the GPU. It now registers an optional settings page in
+Sodium's Video Settings through Sodium's public Config API. This is a GUI/config
+integration; the mod does not replace Sodium rendering code, share Sodium GPU
+resources, or optimize world-rendering frame time. The production mipmap hook
+remains a Minecraft mixin, and Vulkan rendering integration and Rust replacements
+for Sodium hot paths remain unimplemented.
 
 ## Project direction
 
@@ -56,8 +57,10 @@ questions remain open.
 
 ## Install the current alpha
 
-The available alpha targets Minecraft **26.2**, Fabric Loader **0.19.5+**, and
-Java **25**. It is a standalone development build, not the planned Sodium addon.
+The current alpha targets Minecraft **26.2**, Fabric Loader **0.19.5+**, and
+Java **25**. Sodium **0.9.2 for Minecraft 26.2** is optional and is required to
+show the integrated settings page. Without Sodium, the standalone mipmap
+accelerator still runs with its saved configuration.
 
 1. Download the JAR and checksum from
    [GitHub Releases](https://github.com/TrissTheBoss/Fe2O3_nH2O/releases).
