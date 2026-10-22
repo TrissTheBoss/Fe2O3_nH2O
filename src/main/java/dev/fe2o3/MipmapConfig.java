@@ -17,7 +17,6 @@ public final class MipmapConfig {
     public static final int MINIMUM_PIXELS = 4;
     public static final int MAXIMUM_PIXELS = 65_536;
     private static final Logger LOGGER = LoggerFactory.getLogger("Fe2O3_nH2O");
-    private static final Path FILE = FabricLoader.getInstance().getConfigDir().resolve("fe2o3_nh2o.properties");
     private static boolean enabled = Boolean.parseBoolean(System.getProperty("fe2o3.enabled", "true"));
     private static int minimumPixels = clamp(Integer.getInteger("fe2o3.minPixels", 4096));
 
@@ -36,32 +35,43 @@ public final class MipmapConfig {
         Properties properties = new Properties();
         properties.setProperty("mipmaps.enabled", Boolean.toString(enabled));
         properties.setProperty("mipmaps.minimumPixels", Integer.toString(minimumPixels));
-        Path temporary = FILE.resolveSibling(FILE.getFileName() + ".tmp");
+        Path file = configFile();
+        Path temporary = file.resolveSibling(file.getFileName() + ".tmp");
         try {
-            Files.createDirectories(FILE.getParent());
+            Files.createDirectories(file.getParent());
             try (Writer writer = Files.newBufferedWriter(temporary)) {
                 properties.store(writer, "Fe2O3_nH2O mipmap settings");
             }
             try {
-                Files.move(temporary, FILE, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+                Files.move(temporary, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
             } catch (IOException unsupportedAtomicMove) {
-                Files.move(temporary, FILE, StandardCopyOption.REPLACE_EXISTING);
+                Files.move(temporary, file, StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException error) {
-            LOGGER.error("Could not save mipmap settings to {}", FILE, error);
+            LOGGER.error("Could not save mipmap settings to {}", file, error);
         }
     }
 
     private static void load() {
-        if (!Files.isRegularFile(FILE)) return;
+        Path file = configFile();
+        if (!Files.isRegularFile(file)) return;
         Properties properties = new Properties();
-        try (Reader reader = Files.newBufferedReader(FILE)) {
+        try (Reader reader = Files.newBufferedReader(file)) {
             properties.load(reader);
             enabled = Boolean.parseBoolean(properties.getProperty("mipmaps.enabled", Boolean.toString(enabled)));
             minimumPixels = clamp(Integer.parseInt(properties.getProperty("mipmaps.minimumPixels",
                     Integer.toString(minimumPixels))));
         } catch (IOException | IllegalArgumentException error) {
-            LOGGER.warn("Could not read mipmap settings from {}; using defaults", FILE, error);
+            LOGGER.warn("Could not read mipmap settings from {}; using defaults", file, error);
+        }
+    }
+
+    private static Path configFile() {
+        try {
+            return FabricLoader.getInstance().getConfigDir().resolve("fe2o3_nh2o.properties");
+        } catch (RuntimeException | LinkageError unavailableLoader) {
+            // Unit tests exercise the adapter without bootstrapping Fabric Loader.
+            return Path.of("build", "test-config", "fe2o3_nh2o.properties");
         }
     }
 
