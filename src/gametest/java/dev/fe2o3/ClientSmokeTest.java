@@ -4,6 +4,7 @@ import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.platform.Transparency;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.minecraft.client.renderer.texture.MipmapGenerator;
 import net.minecraft.client.renderer.texture.MipmapStrategy;
@@ -20,6 +21,9 @@ import java.nio.file.Path;
 public final class ClientSmokeTest implements FabricClientGameTest {
     @Override
     public void runTest(ClientGameTestContext context) {
+        if (!FabricLoader.getInstance().isModLoaded("sodium")) {
+            throw new AssertionError("The Sodium compatibility test must run with Sodium loaded");
+        }
         context.runOnClient(client -> {
             long initialGeneration = Blaze3DDeviceLifecycle.generation();
             if (initialGeneration == 0) throw new AssertionError("Blaze3D renderer lifecycle was not initialized");
@@ -134,7 +138,7 @@ public final class ClientSmokeTest implements FabricClientGameTest {
             context.takeScreenshot("after-resource-reload");
         }
         try {
-            Files.writeString(Path.of("FE2O3_CLIENT_TEST_PASSED"), "mixin, scene and resource reload passed\n");
+            Files.writeString(Path.of("FE2O3_CLIENT_TEST_PASSED"), "Sodium, mipmap mixin, scene and resource reload passed\n");
         } catch (java.io.IOException e) {
             throw new AssertionError("Unable to write client test completion marker", e);
         }
