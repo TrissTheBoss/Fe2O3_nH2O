@@ -145,3 +145,35 @@ does not create a render pass or share the existing mipmap compute device.
 A real resource must register and pass backend, recreation, reload, resize and
 shutdown tests before an actual vanilla pass can be replaced. The callback path
 and mixin signatures require Minecraft 26.2 CI and live-client validation.
+
+
+## ADR-009 — Focus on mipmaps and become a Sodium addon (2026-10-22, accepted)
+
+Context: the earlier roadmap expanded toward replacing Minecraft's world
+renderer. The project owner has redirected the scope to mipmap optimization,
+Sodium addon integration, Vulkan compatibility, and possible Rust implementations
+of measured hot paths.
+
+Decision: retain the current mipmap implementation as a prototype and exactness
+baseline. Make Sodium addon integration the target architecture, using pinned
+and documented APIs where available. Investigate Vulkan through the active
+Minecraft/Sodium renderer boundary. Consider other Rust hot paths only after
+profiling and only through a maintainable integration point. Do not plan a full
+world-renderer replacement.
+
+Sodium's documented Config API supports addon settings, but that alone does not
+establish a mipmap interception API. The first integration milestone must verify
+the exact target Sodium version and available hooks. Avoid a general promise of
+compatibility with every Sodium addon; publish a tested compatibility matrix.
+Do not copy or redistribute Sodium implementation code without reviewing its
+license and notices.
+
+Consequences: the previous M2/M3 full-renderer milestones are superseded by
+ROADMAP.md's Sodium integration, Vulkan qualification, and profiled Rust work.
+The current standalone Fabric alpha remains unchanged until the addon path passes
+a production-client test. OpenGL/Vulkan smoke logs and software-Vulkan mipmap
+tests do not prove Sodium integration or performance improvement.
+
+References:
+- [Sodium Config API documentation](https://github.com/CaffeineMC/sodium/wiki/CaffeineMC-Maven-%26-Config-API)
+- [Sodium source and project support information](https://github.com/CaffeineMC/sodium)

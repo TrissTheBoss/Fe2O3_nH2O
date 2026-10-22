@@ -74,6 +74,36 @@ provide that version's blend tables/semantics, integration and differential test
 The selected Minecraft backend supplies a preference only: independent wgpu
 buffers still do not share OpenGL/Vulkan handles, a surface, or synchronization
 with Blaze3D. If matching wgpu initialization fails, automatic adapter selection
-preserves the current compute fallback behavior. This architecture has
-readback/copy costs and is not the future world renderer.
+preserves the current compute fallback behavior. This architecture has readback/copy costs. The project direction is limited to
+mipmap optimization and Sodium-addon integration; a general world renderer is
+out of scope.
 
+
+## Target Sodium-addon boundary (planned)
+
+The current Java mixin and Rust compute library are a standalone prototype. A
+future Sodium addon must first pin a Sodium release and use its documented API
+for addon configuration and any supported rendering integration. Sodium's
+configuration API can add settings pages; it does not by itself provide a
+mipmap replacement hook. The project must verify a supported mipmap extension
+point before choosing the runtime integration. If none exists, any compatibility
+hook must be isolated, version-pinned, and covered by fail-safe tests.
+
+Keep Rust independent of Minecraft and Sodium classes. Java owns the loader and
+Sodium integration, converts bounded owned data across JNI, and falls back
+without partially publishing output. Do not copy or replace Sodium internals
+without a separately reviewed license and integration plan. A Sodium addon must
+not claim compatibility with every other addon; record tested versions and
+combinations.
+
+## Vulkan and Rust hot paths (planned)
+
+Mipmap compute on an independent wgpu Vulkan device is not Sodium Vulkan
+rendering support. Any future renderer-owned Vulkan resource must follow the
+active device lifecycle, synchronization, reload, resize, and shutdown rules.
+Do not force the user's backend or create a second presentation surface.
+
+Additional Rust work requires a named, profiled hot path, a measured baseline,
+and a viable integration point. Compare behavior with the Java/Sodium reference
+and benchmark the full path, including scheduling, allocation, JNI, copies, and
+GPU synchronization. No Sodium hot path has been rewritten in Rust yet.
