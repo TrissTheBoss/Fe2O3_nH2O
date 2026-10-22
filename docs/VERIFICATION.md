@@ -15,7 +15,10 @@ Loom 1.17.21 does not provide `modCompileOnly`; the dependency has been changed
 to the `implementation` configuration Sodium documents for modern Fabric. A
 build then reached Java compilation and found that this callback must use
 Sodium's `StorageEventHandler` instead of `Runnable`; the code now uses the
-published callback type. A fresh build and live-client run are still required.
+published callback type. The latest build compiled, but revealed the JUnit
+adapter tests initialize before Fabric Loader and need a test-safe config-path
+fallback; that is now covered in code. A fresh build and live-client run are
+still required.
 The owner-provided Windows
 log dated 2026-10-22 reports Vulkan and the RX 6800 XT, but its loaded-mod list
 contains Fe2O3 and FPS Display and does not list Sodium; therefore it remains
