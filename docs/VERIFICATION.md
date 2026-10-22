@@ -10,12 +10,15 @@ checks pass for metadata/translations JSON and `git diff --check`.
 
 This checkout has no Gradle executable or usable JDK 25, so compilation,
 automated tests, Sodium menu rendering, and persistence have not yet been
-verified here. The owner-provided Windows log dated 2026-10-22 reports Vulkan
-and the RX 6800 XT, but its loaded-mod list contains Fe2O3 and FPS Display and
-does not list Sodium; therefore it remains standalone Vulkan smoke evidence,
-not evidence of Sodium co-loading or the new settings page. Do not mark the
-integration verified until the pinned-Sodium production client test passes and
-the menu/settings are confirmed in game.
+verified here. The first CI attempt stopped during Gradle configuration because
+Loom 1.17.21 does not provide `modCompileOnly`; the dependency has been changed
+to the `implementation` configuration Sodium documents for modern Fabric. A
+fresh build and live-client run are still required. The owner-provided Windows
+log dated 2026-10-22 reports Vulkan and the RX 6800 XT, but its loaded-mod list
+contains Fe2O3 and FPS Display and does not list Sodium; therefore it remains
+standalone Vulkan smoke evidence, not evidence of Sodium co-loading or the new
+settings page. Do not mark the integration verified until the pinned-Sodium
+production client test passes and the menu/settings are confirmed in game.
 
 ## Initial compiled milestone — 2026-10-08
 
