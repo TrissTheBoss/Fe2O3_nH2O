@@ -2,7 +2,7 @@
 
 ## Sodium Video Settings integration — implementation under CI review (2026-10-22)
 
-Added a compile-only dependency on Sodium's public Config API 0.9.2 for
+Added a build dependency on Sodium's public Config API 0.9.2 for
 Minecraft 26.2, its documented late config entrypoint, a translated Video
 Settings page, persistent enable/minimum-area controls, and client smoke checks
 that assert both settings cause the intended vanilla fallback. Local static
