@@ -1,92 +1,104 @@
 # Roadmap
 
-Status vocabulary: **implemented** means code exists; **verified** requires a
-linked test run; **planned** means it does not exist. No percentage estimates.
+Fe2O3 is narrowing its scope to Minecraft texture mipmap optimization and a
+Sodium addon integration. Status words describe evidence: **implemented** means
+code exists, **verified** means the stated test passed, and **planned** means
+work remains. No stage is complete based on compilation alone.
 
-## M0 — first native rendering stage (implemented; CI verified)
+## M0 — Rust/wgpu mipmap prototype (implemented; CI verified)
 
-- Rust/wgpu compute pipeline generating standard mip chains in one submission.
-- Fabric 26.2 integration through a narrow MipmapGenerator mixin.
-- Owned JNI arrays, bounded input, timeout, panic containment, session fallback.
-- Bundled natives for four desktop targets, SHA-256 extraction validation.
-- Differential tests using the actual Minecraft MEAN implementation.
-- Documentation, contributor workflow and repository hygiene rules.
-- Outstanding: physical-GPU measurements and end-to-end performance evidence.
+- Fabric client adapter and Rust/wgpu compute stage for eligible MEAN mipmaps.
+- Exact comparisons against Minecraft's implementation and vanilla fallback
+  for unsupported requests.
+- Bundled native libraries for four desktop targets and software-Vulkan CI.
+- Owner-reported RX 6800 XT launch smoke checks on Minecraft OpenGL and Vulkan.
+- This stage is standalone; it does not depend on Sodium or share its renderer.
 
-## M1 — qualify texture preparation (in progress)
+The prototype is retained as a correctness baseline. Its FPS observations are
+not evidence that mipmap generation improves steady-state rendering.
 
-- Added an opt-in end-to-end vanilla/WebGPU mipmap benchmark with equality checks;
-  machine-specific measurements and threshold selection are still pending.
-- Run the complete resource-pack matrix and reload stress tests.
-- Measure CPU preparation, JNI copies, dispatch/readback and total reload time.
-- Choose the threshold from representative Intel/AMD/NVIDIA/Apple measurements.
-- Evaluate batching and reuse before expanding the GPU stage.
-- Add cutout/coverage handling only if it can remain exactly compatible and faster.
-- Add verified additional native targets, dependency audit and release provenance.
+## M1 — Measure and optimize mipmap generation (in progress)
 
-## M2 — Blaze3D backend integration and first world pass (in progress)
+- Run the end-to-end vanilla versus native benchmark on representative hardware.
+- Measure loading/reload time, CPU time, JNI copies, GPU dispatch/readback, and
+  peak memory for realistic resource packs.
+- Benchmark thresholds by image size and mipmap strategy; keep acceleration
+  disabled for cases where transfer overhead erases the gain.
+- Expand exact-output cases for odd dimensions, alpha, supplied mip levels,
+  animated textures, and supported pack metadata.
+- Choose defaults only after reproducible wins with no output differences.
 
-### Renderer backend lifecycle
+**Acceptance:** published raw measurements and exact-output results on each
+supported backend/device combination. A faster shader microbenchmark alone
+does not pass this stage.
 
-Minecraft 26.2 already routes rendering through Blaze3D. The vanilla Graphics API
-setting selects a backend preference (OpenGL or experimental Vulkan); it does not
-enable or disable Blaze3D. Fe2O3 must therefore attach to the active Blaze3D
-device, not write `options.txt` or force a backend.
+## M2 — Sodium addon integration (planned)
 
-- **Implemented:** after `RenderSystem.initRenderer`, read the selected
-  `DeviceInfo.backendName()` and provide an OpenGL/Vulkan preference to the
-  separate wgpu compute stage. On a Minecraft restart after the Graphics API
-  setting changes, the new initialized device is detected automatically.
-- **Implemented:** if the preferred wgpu API cannot initialize, retry normal
-  wgpu adapter selection before the existing vanilla fallback.
-- **Implemented; CI verified:** lifecycle callbacks now run before
-  RenderSystem.initRenderer replaces a device, after the replacement is
-  installed, and when GameRenderer.close begins. Device generations allow
-  resources to reject stale handles.
-- **Implemented; CI verified:** the client smoke test allocates a
-  temporary 4-byte `GpuBuffer` on the active `GpuDevice`, verifies cleanup on
-  detach, and verifies that it is rebuilt for a later generation. This covers
-  real handle ownership and simulated reinitialization using the same device
-  object, not actual renderer-device replacement or a production resource.
-- **Remaining:** attach production resources needed by the first world pass and
-  verify device recreation on hardware. The current compute stage still owns an
-  independent wgpu device; this lifecycle API does not share it with Blaze3D.
-- Preserve vanilla startup fallback; backend initialization failures leave
-  vanilla rendering usable and disable Fe2O3's replacement for that session.
-- Keep resource creation and draw submission in Minecraft's required render
-  phases and thread. Do not assume OpenGL-specific state or raw Vulkan handles.
-- Test clean first launch, OpenGL, Vulkan when available, changed preference,
-  failed Vulkan startup recovery, window resize, resource reload and shutdown.
-- Verify pixels and frame synchronization before replacing one actual pass.
-  Roll back to that vanilla pass on unsupported capabilities or failure.
+- Pin the target Minecraft and Sodium versions and inspect their supported
+  addon/configuration/rendering APIs.
+- Build a minimal addon integration with a documented Sodium API where one
+  covers the desired mipmap work. Keep the Rust core independent of Sodium and
+  confine version-specific hooks to a small Java adapter.
+- If the mipmap path has no supported extension point, test a narrowly scoped,
+  version-specific compatibility hook and document its failure/fallback limits
+  before adopting it.
+- Decide whether Sodium is a required runtime dependency and update loader
+  metadata only after a working integration test.
+- Verify coexistence with Sodium's own renderer and the specific addon/API
+  combinations listed in the test matrix.
 
-### Community backend reference
+**Acceptance:** the production client proves the addon entry point runs with the
+target Sodium build, exact mipmap output is maintained, and unsupported
+requests safely use the supported fallback. There is no promise of
+compatibility with every current or future addon.
 
-Assess the current wgpu-mc/Electrum rewrite as a community solution. Its stated
-goal is first full Blaze3D backend compatibility, followed by terrain replacement.
-Pin and adopt it only after stable 26.2 compatibility, API maturity, distribution
-terms, Java/native ABI, build process and the no-extra-user-mod requirement pass
-review. It is a reference, not currently a safe runtime dependency.
+## M3 — Vulkan integration (planned)
 
-- Define ownership of frame graph, color/depth targets, synchronization and
-  resource reload lifecycle before connecting a second GPU backend.
-- Avoid a separate raw-window surface unless interoperability with Minecraft's
-  frame is proven.
-- Replace one actual vanilla world pass with a tested rollback path; a diagnostic
-  triangle or extra overlay does not count as pass replacement.
+- Establish which target Minecraft/Sodium releases support Vulkan and through
+  which renderer abstraction.
+- Use the active backend and renderer-owned resource lifecycle; do not force
+  Graphics API settings, create a competing window surface, or assume OpenGL
+  handles are portable to Vulkan.
+- Prove resource ownership, synchronization, reload, resize, shutdown, and
+  device-loss behavior before adding a production Vulkan path.
+- Keep OpenGL and vanilla fallback paths tested independently.
 
-## M3 — world renderer and vanilla parity (planned)
+**Acceptance:** live-client tests on supported OpenGL and Vulkan configurations,
+plus pixel-correct output and a reproducible benchmark on physical GPUs. A
+wgpu Vulkan compute adapter alone does not establish Sodium Vulkan rendering
+compatibility.
 
-- Terrain extraction and meshes, full cubes, arbitrary baked partial-block models.
-- Biome tint, AO, lightmaps, emissive effects, cutout, translucent sorting, fluids.
-- Entities, block entities, items, skins, armor, glint, shadows, outlines.
-- Particle classes, weather, sky/celestials, clouds, fog and all dimensions.
-- Resource packs, animated textures, custom models, reload and resizing lifecycle.
-- Publish image comparisons and performance captures; retain unsupported fallback.
+## M4 — Profiled Rust hot paths (planned; exploratory)
 
-## M4 — stable release and version ports (planned)
+- Profile the Sodium-enabled client and identify a specific CPU-bound operation
+  that is both measurable and safe to integrate.
+- Prefer stable extension points. Do not fork or replace Sodium internals
+  without a clear integration point, pinned version, license review, and
+  evidence that the operation can be offloaded without changing semantics.
+- Implement a clean, bounded Rust component behind a narrow Java boundary only
+  after a representative benchmark shows potential benefit.
+- Compare output/behavior with the Java reference and measure JNI, copying,
+  scheduling, allocation, and end-to-end frame or load costs.
 
-- Complete the parity matrix with hardware coverage and no known regressions.
-- Demonstrate improvements in frame-time percentiles, memory and loading costs.
-- Keep native core independent; create a separately tested adapter for each game
-  version. Do not widen the Minecraft version range to imply untested support.
+**Acceptance:** a named hotspot, repeatable baseline, exact or explicitly
+specified behavior tests, and a statistically defensible end-to-end improvement.
+Rewriting Sodium code in Rust is a research goal, not a current capability or
+a promise to ship a replacement for Sodium's renderer.
+
+## M5 — Compatibility and release qualification (planned)
+
+- Maintain a matrix of Minecraft, Java, Fabric Loader, Sodium, graphics backend,
+  GPU/driver, resource pack, and tested addon combinations.
+- Report exact tested combinations and known conflicts; never infer universal
+  addon compatibility from one successful launch.
+- Verify failure recovery, world changes, reloads, resize, fullscreen,
+  renderer recreation, and game shutdown.
+- Publish checksums, native provenance, dependencies, and benchmark evidence.
+
+## Explicitly out of scope
+
+- Replacing the full Minecraft or Sodium world renderer.
+- Adding a minimap/gameplay map feature.
+- Claiming that all Sodium addons work together without testing.
+- Claiming Vulkan support from wgpu adapter selection alone.
+- Reporting a performance gain from uncontrolled FPS observations.
