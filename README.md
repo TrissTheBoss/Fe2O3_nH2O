@@ -61,7 +61,7 @@ Java **25**. It is a standalone development build, not the planned Sodium addon.
 
 1. Download the JAR and checksum from
    [GitHub Releases](https://github.com/TrissTheBoss/Fe2O3_nH2O/releases).
-2. Put fe2o3-nh2o-0.1.0-alpha.1.jar in the instance's mods directory.
+2. Put fe2o3-nh2o-0.1.0-alpha.2.jar in the instance's mods directory.
 3. Check the release notes and verify the checksum before installing.
 
 The JAR bundles native libraries for Linux x86_64, Windows x86_64, macOS arm64,
