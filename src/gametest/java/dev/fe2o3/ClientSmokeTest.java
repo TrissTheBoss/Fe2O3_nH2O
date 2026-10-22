@@ -16,6 +16,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.lang.reflect.Method;
+import java.util.Properties;
 
 /** Real client/Mixin smoke coverage. Screenshots are evidence, not parity baselines. */
 public final class ClientSmokeTest implements FabricClientGameTest {
@@ -31,7 +33,16 @@ public final class ClientSmokeTest implements FabricClientGameTest {
         context.runOnClient(client -> {
             boolean originalEnabled = MipmapConfig.enabled();
             int originalMinimumPixels = MipmapConfig.minimumPixels();
-            MipmapConfig.setEnabled(false);
+            Identifier enabledId = Identifier.fromNamespaceAndPath("fe2o3_nh2o", "mipmaps_enabled");
+            Identifier minimumPixelsId = Identifier.fromNamespaceAndPath("fe2o3_nh2o", "mipmaps_minimum_pixels");
+            Object[] sodiumConfig = sodiumConfig();
+            Object config = sodiumConfig[0];
+            Object enabledOption = requireSodiumOption(config, enabledId);
+            Object minimumPixelsOption = requireSodiumOption(config, minimumPixelsId);
+
+            setAndApplySodiumOption(config, enabledOption, enabledId, false);
+            if (MipmapConfig.enabled()) throw new AssertionError("Sodium enable binding did not update Fe2O3 config");
+            assertSavedConfig(false, originalMinimumPixels);
             long beforeDisabled = Mipmaps.completed();
             try (NativeImage base = new NativeImage(16, 16, true)) {
                 NativeImage[] levels = MipmapGenerator.generateMipLevels(
@@ -46,8 +57,12 @@ public final class ClientSmokeTest implements FabricClientGameTest {
                     for (int i = 1; i < levels.length; i++) levels[i].close();
                 }
             }
-            MipmapConfig.setEnabled(true);
-            MipmapConfig.setMinimumPixels(65_536);
+            setAndApplySodiumOption(config, enabledOption, enabledId, true);
+            setAndApplySodiumOption(config, minimumPixelsOption, minimumPixelsId, 65_536);
+            if (MipmapConfig.minimumPixels() != 65_536) {
+                throw new AssertionError("Sodium minimum-area binding did not update Fe2O3 config");
+            }
+            assertSavedConfig(true, 65_536);
             long beforeThreshold = Mipmaps.completed();
             try (NativeImage base = new NativeImage(16, 16, true)) {
                 NativeImage[] levels = MipmapGenerator.generateMipLevels(
@@ -62,8 +77,8 @@ public final class ClientSmokeTest implements FabricClientGameTest {
                     for (int i = 1; i < levels.length; i++) levels[i].close();
                 }
             }
-            MipmapConfig.setEnabled(originalEnabled);
-            MipmapConfig.setMinimumPixels(originalMinimumPixels);
+            setAndApplySodiumOption(config, minimumPixelsOption, minimumPixelsId, originalMinimumPixels);
+            setAndApplySodiumOption(config, enabledOption, enabledId, originalEnabled);
 
             long initialGeneration = Blaze3DDeviceLifecycle.generation();
             if (initialGeneration == 0) throw new AssertionError("Blaze3D renderer lifecycle was not initialized");
@@ -184,6 +199,51 @@ public final class ClientSmokeTest implements FabricClientGameTest {
             throw new AssertionError("Unable to write client test completion marker", e);
         }
         System.out.println("[Fe2O3] CLIENT_TEST_COMPLETE");
+    }
+
+    private static Object[] sodiumConfig() {
+        try {
+            Class<?> manager = Class.forName("net.caffeinemc.mods.sodium.client.config.ConfigManager");
+            Object config = manager.getField("CONFIG").get(null);
+            if (config == null) throw new AssertionError("Sodium config API has not registered its options");
+            return new Object[]{config};
+        } catch (ReflectiveOperationException error) {
+            throw new AssertionError("Sodium config API is unavailable", error);
+        }
+    }
+
+    private static Object requireSodiumOption(Object config, Identifier id) {
+        try {
+            Object option = config.getClass().getMethod("getOption", Identifier.class).invoke(config, id);
+            if (option == null) throw new AssertionError("Sodium did not register Fe2O3 option " + id);
+            return option;
+        } catch (ReflectiveOperationException error) {
+            throw new AssertionError("Could not inspect Sodium option " + id, error);
+        }
+    }
+
+    private static void setAndApplySodiumOption(Object config, Object option, Identifier id, Object value) {
+        try {
+            Method modifyValue = option.getClass().getMethod("modifyValue", Object.class);
+            modifyValue.invoke(option, value);
+            config.getClass().getMethod("applyOption", Identifier.class).invoke(config, id);
+        } catch (ReflectiveOperationException error) {
+            throw new AssertionError("Could not apply Sodium option " + id, error);
+        }
+    }
+
+    private static void assertSavedConfig(boolean enabled, int minimumPixels) {
+        Path configPath = FabricLoader.getInstance().getConfigDir().resolve("fe2o3_nh2o.properties");
+        Properties properties = new Properties();
+        try (var reader = Files.newBufferedReader(configPath)) {
+            properties.load(reader);
+        } catch (java.io.IOException error) {
+            throw new AssertionError("Sodium option apply did not persist Fe2O3 settings", error);
+        }
+        if (!Boolean.toString(enabled).equals(properties.getProperty("mipmaps.enabled"))
+                || !Integer.toString(minimumPixels).equals(properties.getProperty("mipmaps.minimumPixels"))) {
+            throw new AssertionError("Persisted Fe2O3 settings do not match applied Sodium options");
+        }
     }
 }
 
