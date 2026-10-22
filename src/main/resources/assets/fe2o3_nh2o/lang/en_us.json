@@ -1,0 +1,9 @@
+{
+  "fe2o3_nh2o.options.page.mipmaps": "Mipmap Optimization",
+  "fe2o3_nh2o.options.group.acceleration": "GPU Acceleration",
+  "fe2o3_nh2o.options.mipmaps.enabled": "Enable GPU mipmap generation",
+  "fe2o3_nh2o.options.mipmaps.enabled.tooltip": "Use the Rust/WebGPU path for supported texture mipmaps. Unsupported textures continue to use Minecraft's vanilla generator.",
+  "fe2o3_nh2o.options.mipmaps.minimum_pixels": "Minimum texture area",
+  "fe2o3_nh2o.options.mipmaps.minimum_pixels.tooltip": "Textures smaller than this many source pixels use Minecraft's vanilla mipmap generator.",
+  "fe2o3_nh2o.options.mipmaps.pixels": "%s pixels"
+}

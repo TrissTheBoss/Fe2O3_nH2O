@@ -10,5 +10,8 @@
   "license": "MIT",
   "environment": "client",
   "mixins": ["fe2o3.mixins.json"],
+  "entrypoints": {
+    "sodium:config_api_user": ["dev.fe2o3.SodiumConfigEntryPoint"]
+  },
   "depends": { "fabricloader": ">=0.19.5", "minecraft": "26.2", "java": ">=25" }
 }
